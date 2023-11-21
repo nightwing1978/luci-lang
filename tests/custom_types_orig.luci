@@ -1,0 +1,37 @@
+let custom = type {
+    let a : int = 0;
+    let create = fn() -> custom {
+        this.a = 5;
+    };
+
+    let destroy = fn() -> null {
+        
+    };
+
+    let get_a = fn() -> int {
+        return this.a;
+    };
+
+    let get_era = fn() -> int {
+        return this.a;
+    };
+};
+
+let b = custom.construct();
+let c = b.get_a();
+
+
+type custom {
+    a : int = 0;
+
+    create = fn() { this.a = 5; };
+    destroy = fn() -> null { };
+    get_a = fn() -> int { return this.a; };
+};
+
+let b = custom();
+let c = b.get_a();
+
+custom.get_a
+
+

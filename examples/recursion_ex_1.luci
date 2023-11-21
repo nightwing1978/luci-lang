@@ -1,0 +1,31 @@
+let min_pos_in_string_rev = fn(s : str, character : str, i : int) {
+    if (i<0) {
+        return 0;
+    };
+    if (s[i] != character) {
+        return i+1;
+    };
+    return min_pos_in_string_rev(s, character, i-1);
+};
+
+let min_pos_in_string = fn(s : str, character : str, i : int) {
+    if (i>len(s)-1) {
+        return len(s)-1;
+    };
+    if (s[i] != character) {
+        return i-1;
+    };
+    return min_pos_in_string(s, character, i+1);
+};
+
+let constant_string = fn(s : str, i : int) {
+    let character = s[i];
+    let min_pos = min_pos_in_string_rev(s, character, i);
+    let max_pos = min_pos_in_string(s, character, i);
+    return [min_pos, max_pos];
+};
+
+print(constant_string("bbbbbbbbbbbbccccccccccccc", 11));
+print(constant_string("aaaaacccccaaaabbbbbbbbbccccccccaaaaaaa", 10));
+
+

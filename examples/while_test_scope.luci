@@ -1,0 +1,12 @@
+let n = 5;
+while (true) {
+    n = n - 1;
+    if (n>=0) {
+        print("n=",n);
+    }
+    if (n<0) {
+        break;
+    }
+}
+
+print("Done");

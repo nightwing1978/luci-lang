@@ -1,0 +1,55 @@
+import test_help;
+
+print("testing the array built-in type strings");
+let a : [all] = [];
+
+test_help::test_eq(type_str(a), "[all]", "construction");
+test_help::test_eq(type_str(a.capacity),   "[all].fn() -> int", "capacity");
+test_help::test_eq(type_str(a.clear),      "[all].fn() -> [all]", "clear");
+test_help::test_eq(type_str(a.empty),      "[all].fn() -> [all]", "empty");
+test_help::test_eq(type_str(a.push_back),  "[all].fn(all) -> [all]", "push_back");
+test_help::test_eq(type_str(a.pop_back),   "[all].fn() -> [all]", "pop_back");
+test_help::test_eq(type_str(a.reserve),    "[all].fn(int) -> [all]", "reserve");
+test_help::test_eq(type_str(a.reverse),    "[all].fn() -> [all]", "reverse");
+test_help::test_eq(type_str(a.reversed),   "[all].fn() -> [all]", "reversed");
+test_help::test_eq(type_str(a.size),       "[all].fn() -> int", "size");
+test_help::test_eq(type_str(a.rotate),     "[all].fn(int) -> [all]", "rotate");
+test_help::test_eq(type_str(a.rotated),    "[all].fn(int) -> [all]", "rotated");
+
+
+print("testing the dictionary built-in type strings");
+let b : {all:all} = {};
+test_help::test_eq(type_str(b), "{all:all}", "construction");
+test_help::test_eq(type_str(b.clear),  "{all:all}.fn() -> {all:all}", "clear");
+test_help::test_eq(type_str(b.empty),  "{all:all}.fn() -> {all:all}", "empty");
+test_help::test_eq(type_str(b.size),   "{all:all}.fn() -> int", "size");
+test_help::test_eq(type_str(b.keys),   "{all:all}.fn() -> [all]", "keys");
+test_help::test_eq(type_str(b.values), "{all:all}.fn() -> [all]", "values");
+test_help::test_eq(type_str(b.items),  "{all:all}.fn() -> [[all]]", "items");
+test_help::test_eq(type_str(b.update), "{all:all}.fn({all:all}) -> {all:all}", "update");
+
+print("testing the str built-in type strings");
+let c : str = "";
+test_help::test_eq(type_str(c), "str", "construction");
+test_help::test_eq(type_str(c.clear), "str.fn() -> str", "clear");
+test_help::test_eq(type_str(c.empty), "str.fn() -> str", "empty");
+test_help::test_eq(type_str(c.size), "str.fn() -> int", "size");
+
+test_help::test_eq(type_str(c.starts_with), "str.fn(str) -> bool", "starts_with");
+test_help::test_eq(type_str(c.ends_with), "str.fn(str) -> bool", "ends_with");
+test_help::test_eq(type_str(c.find), "str.fn(str) -> int", "find");
+test_help::test_eq(type_str(c.replace), "str.fn(str,str) -> str", "replace");
+
+test_help::test_eq(type_str(c.split), "str.fn(str) -> [str]", "split");
+test_help::test_eq(type_str(c.join), "str.fn([str]) -> str", "join");
+
+
+print("testing the io built-in type");
+let f : io = open("test.txt","w");
+f.close();
+test_help::test_eq(type_str(f), "io", "construction");
+test_help::test_eq(type_str(f.open), "io.fn(str,str) -> io", "open");
+
+print("testing the range built-in type");
+let g : range = range(5);
+test_help::test_eq(type_str(g), "range", "construction");

@@ -1,0 +1,67 @@
+import test_help;
+
+let g : int = 0;
+
+type RAII {
+    value : int = null;
+
+    construct = fn(x : int) -> null { 
+        this.value = x;
+        g += 1;
+        return null;
+    };
+    destruct = fn() -> null {
+        g -= 1;
+        return null;
+    };
+};
+
+scope {
+    let a = RAII(5);
+    test_help::test_eq(g, 1, "*scope* constructor has modified g, destructor not yet executed");
+}
+test_help::test_eq(g, 0, "destructor has executed");
+
+
+if (true) {
+    let a = RAII(5);
+    test_help::test_eq(g, 1, "*if* constructor has modified g, destructor not yet executed");
+}
+test_help::test_eq(g, 0, "destructor has executed");
+
+
+while (true) {
+    let a = RAII(5);
+    test_help::test_eq(g, 1, "*while* constructor has modified g, destructor not yet executed");
+    break;
+}
+test_help::test_eq(g, 0, "destructor has executed");
+
+
+for (x in [0]) {
+    let a = RAII(5);
+    test_help::test_eq(g, 1, "*for* constructor has modified g, destructor not yet executed");
+    break;
+}
+test_help::test_eq(g, 0, "destructor has executed");
+
+
+let function_call = fn() {
+    let a = RAII(5);
+    test_help::test_eq(g, 1, "*function* has modified g, destructor not yet executed");
+};
+function_call();
+test_help::test_eq(g, 0, "destructor has executed");
+
+
+type Test {
+    member = fn() -> null {
+        let a = RAII(5);
+        test_help::test_eq(g, 1, "*member function* has modified g, destructor not yet executed");
+        return null;
+    };
+};
+
+let t = Test();
+t.member();
+test_help::test_eq(g, 0, "destructor has executed");

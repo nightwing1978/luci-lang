@@ -1,0 +1,30 @@
+import test_help;
+
+let a = [0,1];
+test_help::test_eq( frozen(a) , false, "default non-frozen state");
+freeze(a);
+test_help::test_eq( frozen(a) , true, "manual freeze");
+freeze(a);
+test_help::test_eq( frozen(a) , true, "manual freeze x2");
+defrost(a);
+test_help::test_eq( frozen(a) , true, "manual defrost");
+defrost(a);
+test_help::test_eq( frozen(a) , false, "manual defrost x2");
+
+scope {
+    let f = freezer(a);
+    test_help::test_eq( frozen(a) , true, "scoped freezer");
+}
+test_help::test_eq( frozen(a) , false, "scoped freezer defrosting");
+
+
+scope 
+{
+    freezer(a);
+    test_help::test_eq( frozen(a) , true, "scoped anonymous freezer");
+}
+test_help::test_eq( frozen(a) , false, "scoped anonymous freezer defrosting");
+
+test_help::test_eq( frozen(defrost(freeze(a))) , false, "chaining free/defrost");
+test_help::test_eq( lookup_hashable(a), false, "non-frozen array is not lookup-hashable");
+test_help::test_eq( lookup_hashable(freeze(a)), true, "frozen array is lookup-hashable");

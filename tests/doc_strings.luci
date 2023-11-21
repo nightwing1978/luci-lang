@@ -1,0 +1,28 @@
+import test_help;
+
+/! documentation for function a
+let a = fn() -> null {
+    return null;
+}
+
+/! documentation for function b
+/! running over multiple lines
+let b = fn() -> null {
+    return null;
+}
+
+/! documentation for custom type Custom
+type Custom 
+{
+    /! documentation for function Custom.c
+    c = fn() -> null { return null; }
+};
+
+let d = Custom();
+
+test_help::test_eq(doc(a),"documentation for function a", "free function doc");
+test_help::test_eq(doc(b),"documentation for function b\nrunning over multiple lines", "free function doc");
+test_help::test_eq(doc(Custom),"documentation for custom type Custom", "type function doc");
+test_help::test_eq(doc(Custom.c),"documentation for function Custom.c", "type member function doc");
+test_help::test_eq(doc(Custom.c),"documentation for function Custom.c", "object member function doc");
+

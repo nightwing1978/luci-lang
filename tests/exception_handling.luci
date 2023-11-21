@@ -1,0 +1,19 @@
+try 
+{
+    let a : int = 3.0;
+}
+except ( e )
+{
+    print("Error caught ", e);
+    print("Type str ", type_str(e));
+    print("e.error_type=", e.error_type);
+
+    try 
+    {
+        let a : int = 3.0;
+    } 
+    except (d)
+    {
+        print("nested");
+    };
+};

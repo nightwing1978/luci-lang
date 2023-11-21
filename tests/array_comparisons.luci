@@ -1,0 +1,26 @@
+import test_help;
+
+let a : [double] = [0.0,1.0];
+let b = [];
+b.push_back(0.0);
+b.push_back(1.0);
+
+test_help::test_eq( a, b, "double array eq generic array");
+test_help::test_eq( a==b, true, "double array eq generic array");
+
+b.pop_back();
+test_help::test_neq( a, b, "double array neq generic array");
+test_help::test_eq( a!=b, true, "double array neq generic array");
+
+let c : [complex] = [complex(0.0),complex(1.0)];
+let d = [];
+d.push_back(complex(0.0));
+d.push_back(complex(1.0));
+
+test_help::test_eq( c, d, "complex array eq generic array");
+test_help::test_eq( c==d, true, "complex array eq generic array");
+
+d.pop_back();
+test_help::test_neq( c, d, "complex array neq generic array");
+test_help::test_eq( c!=d, true, "complex array neq generic array");
+

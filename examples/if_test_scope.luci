@@ -1,0 +1,11 @@
+let n = 5;
+if (true) {
+    if (true) {
+        print("n=",n);
+    };
+    if (true) {
+        print("n=",n);
+    };
+}
+
+print("Done");

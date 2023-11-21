@@ -1,0 +1,45 @@
+import test_help;
+
+type custom 
+{
+    a : int = 1;
+    const b : int = 3;
+
+    construct = fn() -> null { this.a = 5; return null;};
+    destruct = fn() -> null { print("destroying obj"); };
+    get_a = fn() -> int { return this.a; };
+    get_a_plus_1 = fn() -> int { return 1 + this.a; };
+    get_error = fn() -> int { print("return string"); return "dlkj"; };
+};
+
+if (true) 
+{
+    let b = custom();
+};
+
+print("custom.get_a=", custom.get_a);
+print("type_str('custom.get_a')=", type_str(custom.get_a));
+test_help::test_eq( type_str(custom) , "custom", "type_str type validity");
+
+let a = custom();
+test_help::test_eq( type_str(a) , "custom", "type_str object validity and correctness");
+
+print("type_str('a.get_a')=", type_str(a.get_a));
+
+test_help::test_eq( type_str(a) , "custom", "type_str object validity");
+test_help::test_eq( a.a , 5, "member initialization and constructor");
+test_help::test_eq( a.b , 3, "const member initialization");
+test_help::test_eq( a.get_a() , 5, "member function call");
+test_help::test_eq( a.get_a_plus_1() , 6, "member function call using this");
+
+a.a = 7;
+test_help::test_eq( a.a , 7, "member update");
+
+test_help::test_error( 
+    fn() 
+    {
+        let test = a.get_error();
+    }, 
+    "expect error when mismatch return type");
+
+test_help::test_eq( a.b , 3, "const member update");

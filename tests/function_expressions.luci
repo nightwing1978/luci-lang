@@ -1,0 +1,16 @@
+let assert = fn(truth, msg) {
+    if (!truth) {
+        print("Assertion failure: ", msg, " ", truth);
+        exit(1);
+    } else {
+        print("Test passed: ", msg);
+    }
+};
+
+let test_name = "";
+
+test_name = "Testing function expression";
+let f1 = fn(x) { return x +1; };
+let f2 = fn(x) { return x +2; };
+let r = { true : f1, false : f2 }[true];
+assert(r(5) == 6, "apply function");

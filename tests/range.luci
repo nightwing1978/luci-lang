@@ -1,0 +1,14 @@
+import test_help;
+
+let a : range = range(0,5);
+test_help::test_eq(len(a), 5, "length of a range");
+
+test_help::test_eq(len(range(0,0)), 0, "length of a range(0,0)");
+test_help::test_eq(len(range(1,0)), 0, "length of a range(1,0)");
+test_help::test_eq(len(range(-1,2)), 3, "length of a range(-1,2)");
+
+test_help::test_eq([0,1,2,3][range(0,2)], [0,1], "array range indexing");
+test_help::test_eq(array_double([0.0,1.0,2.0,3.0])[range(0,2)], [0.0,1.0], "array range indexing");
+test_help::test_eq(array_complex([complex(0.0),complex(1.0),complex(2.0),complex(3.0)])[range(0,2)], [complex(0.0),complex(1.0)], "array range indexing");
+
+test_help::test_eq("01234"[range(0,2)], "01", "string range indexing");

@@ -1,0 +1,9 @@
+type custom 
+{
+    a : int = 1;
+
+    /! adding documentation to the constructor
+    /! and a second line
+    construct = fn() -> null {};
+};
+

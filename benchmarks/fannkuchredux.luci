@@ -1,0 +1,87 @@
+let apply = fn( x, func ) {
+    let i = 0;
+    while (i<len(x)) {
+            func(x[i]);
+            i = i+1;
+    };
+}
+
+let update_array = fn( arr, s, e, new_values) {
+    let i = s;
+    while (i<e) {
+        arr[i] = new_values[i-s];
+        i=i+1;
+    }
+    return arr;
+}
+
+let fannkuch = fn(n) {
+    let maxFlipsCount = 0;
+    let permSign = true;
+    let checkSum = 0;
+
+    let perm1 = array(range(0, n));
+    let count = array(range(0, n));
+    let rxrange = array(range(2, n-1));
+    let nm = n - 1;
+    while (true) {
+        let k = perm1[0];
+        if (k!=0) {
+            let perm = clone(perm1);
+            let flipsCount = 1;
+            let kk = perm[k];
+            while (kk != 0) {
+                update_array(perm, 0, k+1, reversed(slice(perm, 0, k+1)) );
+                flipsCount += 1;
+                k = kk;
+                kk = perm[kk];
+            };
+            if (maxFlipsCount < flipsCount) {
+                maxFlipsCount = flipsCount;
+            };
+            if (permSign) {
+                checkSum += flipsCount;
+            } else {
+                checkSum -= flipsCount;
+            };
+        };
+
+        if (permSign) {
+            let temp = perm1[0];
+            perm1[0] = perm1[1];
+            perm1[1] = temp;
+            permSign = false;
+        } else {
+            let temp = perm1[1];
+            perm1[1] = perm1[2];
+            perm1[2] = temp;
+            permSign = true;
+            let found = false;
+            let r_out = 0;
+            apply(rxrange, fn(r) {
+                if (count[r]!=0) {
+                    found = true;
+                    r_out = r;
+                    break;
+                };
+                count[r] = r;
+                let perm0 = perm1[0];
+                apply(range(0,r+1), fn(i) {
+                    perm1[i] = perm1[i+1];
+                });
+                perm1[r+1] = perm0;
+            });
+            if (!found) {
+                r_out = nm;
+                if (count[r_out]==0) {
+                    print("checkSum=", checkSum);
+                    return maxFlipsCount;
+                };
+            };
+            count[r_out] -= 1;
+        };
+    };
+}
+
+let n = to_int(arg()[2]);
+print("Pfannkuchen(",n,")=", fannkuch(n));

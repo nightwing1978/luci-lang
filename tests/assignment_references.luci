@@ -1,0 +1,18 @@
+let k = [1,1,1,1];
+let m = 2;
+let z = 3;
+z = m;
+z -= 2;
+print("z ", z, " addr(z) ", address(z));
+print("m ", m, " addr(m) ", address(m));
+
+
+k[0] = m;
+print("addr(k[0]) ", address(k[0]));
+print("addr(m) ", address(m));
+
+print("k=",k);
+print("m=",m);
+k[0]-= 5;
+print("k=",k);
+print("m=",m);

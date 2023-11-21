@@ -1,0 +1,9 @@
+let a : any = 3.0;
+let b : all = 3.0;
+let c : double = 3.0;
+let d : <double,int> = 3.0;
+let e : [double] = [1.0,2.0];
+let f : {all:all} = { "a" : 3.0 };
+let g : {all:<double, int>} = { "a" : 3.0, 7 : 5 };
+let h : <bool, int, double, str, [any], {any:any}> = 1.0;
+let i : <null, [[double]]> = null;

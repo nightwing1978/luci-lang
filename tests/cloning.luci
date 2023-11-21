@@ -1,0 +1,7 @@
+import test_help;
+
+let a = 5;
+test_help::test_eq( clone(a) , 5, "cloning integer");
+
+let b = [0,1];
+test_help::test_eq( clone(b),  [0,1], "cloning array of integers");

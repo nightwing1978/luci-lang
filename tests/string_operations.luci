@@ -1,0 +1,40 @@
+import test_help;
+let a = "012345";
+
+test_help::test_eq( "01234" , "01234", "string  ==");
+test_help::test_neq( "01234" , "1234", "string  ==");
+
+test_help::test_eq( a[0] , "0", "string indexing");
+test_help::test_eq( "0123"[2] , "2", "string literal indexing");
+test_help::test_eq( "0123"[-1] , "3", "string negative indexing");
+
+test_help::test_eq( reversed(a) , "543210", "reversing string");
+
+a[0] = "8";
+test_help::test_eq( a , "812345", "string index assignment");
+
+a[0] = "777";
+test_help::test_eq( a , "77712345", "string index/insert assignment");
+
+// member functions
+test_help::test_eq( "ab_cd".size() , 5, "str.size");
+
+test_help::test_eq( "ab_cd".starts_with("ab") , true, "str.starts_with");
+test_help::test_eq( "ab_cd".starts_with("cd") , false, "str.starts_with");
+test_help::test_eq( "ab_cd".ends_with("ab") , false, "str.ends_with");
+test_help::test_eq( "ab_cd".ends_with("cd") , true, "str.ends_with");
+
+test_help::test_eq( "ab cd".split() , ["ab","cd"], "str.split");
+test_help::test_eq( "ab_cd".split("_") , ["ab","cd"], "str.split");
+test_help::test_eq( "ab_cd".split(";_") , ["ab","cd"], "str.split");
+test_help::test_eq( "ab_cd".split("*") , ["ab_cd"], "str.split");
+
+test_help::test_eq( "_".join(["ab","cd"]) ,"ab_cd", "str.join");
+test_help::test_eq( "__".join(["ab","cd"]) ,"ab__cd", "str.join");
+test_help::test_eq( "__".join([]) ,"", "str.join");
+
+test_help::test_eq( "ab_cd".find("_") ,2, "str.find");
+test_help::test_eq( "ab_cd".find("*") ,-1, "str.find");
+test_help::test_eq( "ab_cd".replace("_","*") ,"ab*cd", "str.replace");
+test_help::test_eq( "ab_cd".replace("cd","ab") ,"ab_ab", "str.replace");
+

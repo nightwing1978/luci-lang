@@ -1,0 +1,147 @@
+let const PI : double = 3.14159265358979323;
+let const SOLAR_MASS : double = 4.0 * PI * PI;
+let const DAYS_PER_YEAR : double = 365.25;
+
+let apply = fn( x : <range,[all]>, func ) -> null {
+    let i = 0;
+    while (i<len(x)) {
+        func(x[i]);
+        i = i+1;
+    }
+}
+
+
+let combinations = fn( l )  {
+    let result = [];
+    apply( range(len(l)-1), fn(x) {
+        let ls = slice(l,x+1,len(l));
+        apply(ls, fn(y) {
+            append(result, [l[x],y]);
+        });
+    });
+    return result;
+}
+
+
+let BODIES = {
+    "sun": [    [0.0, 0.0, 0.0], 
+                [0.0, 0.0, 0.0], 
+                SOLAR_MASS
+            ],
+    "jupiter": [ 
+            [4.84143144246472090e+00,  -1.16032004402742839e+00, -1.03622044471123109e-01],
+            [1.66007664274403694e-03 * DAYS_PER_YEAR, 7.69901118419740425e-03 * DAYS_PER_YEAR, -6.90460016972063023e-05 * DAYS_PER_YEAR],
+            9.54791938424326609e-04 * SOLAR_MASS],
+
+    "saturn": [[8.34336671824457987e+00,4.12479856412430479e+00,-4.03523417114321381e-01],
+               [-2.76742510726862411e-03 * DAYS_PER_YEAR,4.99852801234917238e-03 * DAYS_PER_YEAR, 2.30417297573763929e-05 * DAYS_PER_YEAR],
+               2.85885980666130812e-04 * SOLAR_MASS],
+
+    "uranus": [[1.28943695621391310e+01,-1.51111514016986312e+01,-2.23307578892655734e-01],
+               [2.96460137564761618e-03 * DAYS_PER_YEAR,2.37847173959480950e-03 * DAYS_PER_YEAR,-2.96589568540237556e-05 * DAYS_PER_YEAR],
+               4.36624404335156298e-05 * SOLAR_MASS],
+
+    "neptune": [[1.53796971148509165e+01,-2.59193146099879641e+01,1.79258772950371181e-01],
+                [2.68067772490389322e-03 * DAYS_PER_YEAR,1.62824170038242295e-03 * DAYS_PER_YEAR,-9.51592254519715870e-05 * DAYS_PER_YEAR],
+                5.15138902046611451e-05 * SOLAR_MASS] 
+};
+
+let advance = fn(dt, n, bodies, pairs) {
+    apply(range(n), fn(ignore) {
+        apply(pairs, fn(pair) {
+            let pairxyz1 = pair[0][0];
+            let pairxyz2 = pair[1][0];
+            
+            let dx = pairxyz1[0] - pairxyz2[0];
+            let dy = pairxyz1[1] - pairxyz2[1];
+            let dz = pairxyz1[2] - pairxyz2[2];
+            let dist2 = (dx * dx + dy * dy + dz * dz);
+            let mag = dt * math.pow( dist2, -1.5 );
+
+            let v1 = pair[0][1];
+            let m2 = pair[1][2];
+            v1[0] -= dx * m2 * mag;
+            v1[1] -= dy * m2 * mag;
+            v1[2] -= dz * m2 * mag;
+
+            let v2 = pair[1][1];
+            let m1 = pair[0][2];
+            v2[0] += dx * m1 * mag;
+            v2[1] += dy * m1 * mag;
+            v2[2] += dz * m1 * mag;
+        });
+
+        apply(bodies, fn(body) {
+            let r = body[0];
+            let vx = body[1][0];
+            let vy = body[1][1];
+            let vz = body[1][2];
+            r[0] += dt * vx;
+            r[1] += dt * vy;
+            r[2] += dt * vz;
+        });
+    });
+};
+
+let report_energy = fn(bodies, pairs, e) {
+        apply(pairs, fn(pair) {
+                let pairxyz1 = pair[0][0];
+                let x1 = pairxyz1[0];
+                let y1 = pairxyz1[1];
+                let z1 = pairxyz1[2];
+                let m1 = pair[0][2];
+                let pairxyz2 = pair[1][0];
+                let x2 = pairxyz2[0];
+                let y2 = pairxyz2[1];
+                let z2 = pairxyz2[2];
+                let m2 = pair[1][2];
+                
+                let dx = x1 - x2;
+                let dy = y1 - y2;
+                let dz = z1 - z2;
+
+                let value = (dx * dx + dy * dy + dz * dz);
+                value = math.sqrt(value);
+                e = e - (m1 * m2) / value;
+        });
+        apply(bodies, fn(body) {
+                let r = body[0];
+                let vx = body[1][0];
+                let vy = body[1][1];
+                let vz = body[1][2];
+                let m = body[2];
+                e = e + m * (vx * vx + vy * vy + vz * vz) / 2.0;
+        });
+        return e;
+}
+
+let offset_momentum = fn(ref, bodies, px, py, pz) {
+        apply(bodies, fn(body) {
+                let r = body[0];
+                let v = body[1];
+                let m = body[2];
+                let vx = v[0];
+                let vy = v[1];
+                let vz = v[2];
+                px = px - vx*m;
+                py = py - vy*m;
+                pz = pz - vz*m;
+        });
+        let r = ref[0];
+        let v = ref[1];
+        let m = ref[2];
+        v[0] = px/m;
+        v[1] = py/m;
+        v[2] = pz/m;
+}
+
+let SYSTEM = values(BODIES);
+let PAIRS = combinations(SYSTEM);
+
+let ref = "sun";
+offset_momentum(BODIES[ref], SYSTEM, 0.0,0.0,0.0);
+let e = report_energy(SYSTEM, PAIRS, 0.0);
+print("Start energy", e);
+advance(0.01, to_int(arg()[2]), SYSTEM, PAIRS);
+e = report_energy(SYSTEM, PAIRS, 0.0);
+print("Stop energy", e);

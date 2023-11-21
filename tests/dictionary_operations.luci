@@ -1,0 +1,27 @@
+import test_help;
+
+let a = { 0 : 0, 1 : -1, 2 : -2 };
+let b = { 0 : 0, 1 : -1, 2 : -2 }
+test_help::test_eq( a , b, "dictionary ==");
+
+test_help::test_eq( { "0" : "0", "1" : "1" } , { "0" : "0", "1" : "1" }, "dictionary ==");
+test_help::test_eq( { "0" : "0", "1" : [1,2] } , { "0" : "0", "1" : [1,2] }, "dictionary ==");
+
+let c = { 0 : { "0" : "0", "1" : [1,2] }, 1 : -1, 2 : -2 };
+let d = { 0 : { "0" : "0", "1" : [1,2] }, 1 : -1, 2 : -2 };
+test_help::test_eq( c , d, "dictionary ==");
+test_help::test_neq( a, d, "dictionary !=");
+
+test_help::test_eq( a[0] , 0, "dictionary indexing");
+test_help::test_eq( a[1] , -1, "dictionary indexing");
+test_help::test_eq( c[0] , { "0" : "0", "1" : [1,2] }, "dictionary indexing");
+test_help::test_eq( c[0]["1"] , [1,2], "dictionary indexing");
+test_help::test_eq( c[0]["1"][1] , 2, "dictionary and array indexing");
+
+a[0] = 1;
+test_help::test_eq( a[0] , 1, "dictionary indexed assignment");
+
+c[0]["1"][1] = 3;
+test_help::test_eq( c[0]["1"][1] , 3, "dictionary and array triple indexed assignment");
+
+

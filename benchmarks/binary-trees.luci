@@ -1,0 +1,50 @@
+let max = fn( x, y ) {
+    if (x>y) { 
+            return x; 
+    }
+    return y;
+}
+
+let apply = fn( x, func ) {
+    let i = 0;
+    while (i<len(x)) {
+            func(x[i]);
+            i = i+1;
+    }
+}
+
+let make_tree = fn( depth ) {
+    if (depth <= 0)  { 
+            return [null, null]; 
+    }
+    depth = depth - 1;
+    return [make_tree(depth), make_tree(depth)];
+}
+
+let check_tree = fn(node) {
+    let left = node[0];
+    if (left==null) { 
+        return 1; 
+    }
+    let right = node[1];
+    return (1 + check_tree(left) + check_tree(right));
+}
+
+let min_depth = 4;
+let max_depth = to_int(arg()[2]);
+max_depth = max( min_depth + 2, max_depth);
+let stretch_depth = max_depth + 1;
+let stretch_tree = make_tree(stretch_depth);
+print("stretch tree of depth", stretch_depth, check_tree(stretch_tree));
+let long_lived_tree = make_tree(max_depth);
+let iterations = 2**max_depth;
+
+apply( range(min_depth, stretch_depth, 2), fn(depth) {
+    let check = 0;
+    apply( range(1, iterations + 1, 1), fn(i) {
+        check = check + check_tree(make_tree(depth));
+    });
+    print(iterations, "trees of depth", depth, " ", check);
+    iterations = iterations / 4;
+});
+print("long lived tree of depth", max_depth, check_tree(long_lived_tree));

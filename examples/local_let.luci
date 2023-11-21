@@ -1,0 +1,6 @@
+let i = 0;
+while (i<3) {
+    let j = i;
+    i = i +1;
+    print(i);
+}

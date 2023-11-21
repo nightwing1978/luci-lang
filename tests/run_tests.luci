@@ -1,0 +1,31 @@
+import test_help;
+
+let const tests : [str] = [
+    "array_comparisons.luci",
+    "array_double_complex.luci",
+    "array_operations.luci",
+    "blocks.luci",
+    "builtin_type_str.luci",
+    "cloning.luci",
+    "custom_types.luci",
+    "dictionary_operations.luci",
+    "doc_strings.luci",
+    "file_operations.luci",
+    "freezing.luci",
+    "iter.luci",
+    "range.luci",
+    "scope_tests.luci",
+    "set_operations.luci",
+    "set_operations_non_trivial.luci",
+    "sort.luci",
+    "string_operations.luci"
+];
+
+print("Start of testing");
+
+for (const name : str in tests) {
+    print(" -- Running tests from ", name, " -- ");
+    run(name);
+};
+
+print(test_help::color_green, "End of testing", test_help::color_default);

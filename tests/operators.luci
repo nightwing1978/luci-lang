@@ -1,0 +1,49 @@
+let assert = fn(truth, msg) {
+    if (!truth) {
+        print("Assertion failure: ", msg, " ", truth);
+        exit(1);
+    } else {
+        print("Test passed: ", msg);
+    }
+};
+
+let a = 0;
+
+assert( a==0, "operators assignment");
+
+a = a + 1;
+print("a=",a);
+assert( a==1, "operators addition");
+
+a = a - 1;
+assert( a==0, "operators subtraction");
+
+a + 1;
+assert( a==0, "operators as expressions");
+
+a += 5; 
+assert( a==5, "inplace operators addition a==5");
+
+a += 5;
+assert( a==10, "inplace operators addition a==10");
+
+let b = [0,1,2];
+let c = b[0];
+c += 1;
+assert( b[0]==1, "inplace indexed operators addition");
+
+let d = [0,0,0];
+d[2] += 5;
+assert( d[2]==5, "inplace indexed operators addition 5");
+d[2] += 5;
+assert( d[2]==10, "inplace indexed operators addition 10");
+d[2] -= 5;
+assert( d[2]==5, "inplace indexed operators subtraction 5");
+d[2] -= 5;
+assert( d[2]==0, "inplace indexed operators subtraction 0");
+
+let r_out = 3;
+let count = [0,1,2,3,4,5,6,7];
+count[r_out] = r_out;
+print("count=",count," r_out=",r_out);
+count[r_out] -= 1;

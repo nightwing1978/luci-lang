@@ -1,0 +1,37 @@
+import test_help;
+
+let a : [double] = [3.0,2.0,1.0,0.0];
+test_help::test_eq( sort(a), true, "sorting of doubles");
+test_help::test_eq( is_sorted(a) , true, "a is sorted");
+
+let b = ["a", "b", "d", "c"];
+test_help::test_eq( sort(b), true, "sorting of strings");
+test_help::test_eq( is_sorted(b) , true, "b is sorted");
+
+let c = [3,2,1,0];
+test_help::test_eq( sort(c), true, "sorting of integers");
+test_help::test_eq( is_sorted(c) , true, "c is sorted");
+test_help::test_eq( sorted(c), [0,1,2,3], "c is sorted");
+
+let d = [3,"2",1,0];
+test_help::test_eq( sort(d), false, "sorting of mixed types should fail" );
+test_help::test_eq( is_sorted(d) , false, "d is not sorted");
+test_help::test_eq( sorted(d) , [3,"2",1,0], "d is not sorted");
+
+type CustomInt {
+    value : int = null;
+    construct = fn(x : int) -> null { this.value = x; return null; };
+};
+
+let customComparator = fn(a, b) -> bool {
+    return a.value < b.value;
+}
+
+let e = [CustomInt(2), CustomInt(1)];
+test_help::test_eq( sort(e, customComparator), true, "sorting of custom types");
+test_help::test_eq( is_sorted(e, customComparator) , true, "e is sorted");
+
+let f : [double] = array_double([0.0,1.0,2.0,3.0]);
+test_help::test_eq( sort(f, fn(a,b){ return a > b;}), true, "sorting with custom comparator");
+test_help::test_eq( is_sorted(f, fn(a,b){ return a > b;}) , true, "checking with custom comparator");
+test_help::test_eq( f, [3.0,2.0,1.0,0.0], "checking with custom comparator");

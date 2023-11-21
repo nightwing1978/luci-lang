@@ -1,0 +1,24 @@
+let test1 = fn() {
+    let i = 0;
+    if (i==0) {
+        return 666;
+    }
+    return 1;
+}
+
+print("value test1=",test1());
+
+let test = fn() {
+    let i = 0;
+    while (i<5) {
+        i = i + 1;
+        if (i>2) {
+            print("Returning 666");
+            return 666;
+        }
+        print("i=", i);
+    }
+    return i;
+}
+
+print("value test=",test());

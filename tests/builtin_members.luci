@@ -1,0 +1,18 @@
+let a = [0,1,2];
+print("Length of a =", a.size());
+print("type_str of length of a =", type_str(a.size));
+print("type_str of rotate of a =", type_str(a.rotate));
+
+print("Length of a =", a.size());
+print("Length of a + 1 =", a.size() + 1);
+print("Length of a + 1 =", a.size() + 1);
+print("Length of a =", a.size());
+print("Length of a =", a.size);
+a = [0,1,2];
+print("a.rotate(1)=", a.rotate(1));
+a = [0,1,2];
+print("a.rotate(2)=", a.rotate(2));
+a = [0,1,2];
+print("a.rotate(1).rotate(1)=", a.rotate(1).rotate(1));
+print("a.rotate(a.size())=", a.rotate(a.size()));
+print("a.rotate('a')=", a.rotate("a"));

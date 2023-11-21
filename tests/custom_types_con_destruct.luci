@@ -1,0 +1,56 @@
+type Custom
+{
+    a : int = 1;
+
+    construct = fn() -> null 
+    { 
+        print("constructing Custom");
+        return null;
+    };
+    destruct = fn() -> null 
+    { 
+        print("destroying Custom"); 
+        return null;
+    };
+
+    class_method = fn() -> null
+    {
+        print("trying to access this will fail");
+        print("context_names=",context_names());
+        this_type.a = 7;
+        return null;
+    };
+};
+
+print("context_names=", context_names());
+print("invoking class method");
+Custom.class_method();
+print("end invoking class method");
+print("Custom.a=", Custom.a);
+
+type CustomNesting
+{
+    b = null;
+
+    construct = fn() -> null 
+    { 
+        print("constructing CustomNesting");
+        print("type_str(this)=", type_str(this));
+        this.b = Custom();
+        return null;
+    };
+    destruct = fn() -> null 
+    { 
+        print("destroying CustomNesting"); 
+        return null;
+    };
+};
+
+print("context_names=", context_names());
+let c = CustomNesting();
+print("type_str(c.b.a)=",type_str(c.b.a));
+print("c.b.a=",c.b.a);
+
+"c.b.a = 2;";
+print("type_str(c.b.a)=",type_str(c.b.a));
+print("c.b.a=",c.b.a);

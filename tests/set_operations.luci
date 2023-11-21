@@ -1,0 +1,11 @@
+import test_help;
+
+let e = set();
+test_help::test_eq( len(e), 0, "empty set");
+
+let a = { 0, 1, 2};
+let b = { 0, 2, 1 }
+test_help::test_eq( a , b, "set ==");
+test_help::test_eq( len(a), 3, "set len");
+
+test_help::test_eq( { "0", "1" } , { "0", "1" }, "set ==");

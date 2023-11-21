@@ -1,0 +1,9 @@
+let a = 0.0;
+let b = a;
+
+print("addr(a)=", address(a));
+print("addr(b)=", address(b));
+
+b = 3.0;
+print("a=",a);
+print("b=",b);

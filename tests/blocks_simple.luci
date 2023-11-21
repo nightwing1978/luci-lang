@@ -1,0 +1,6 @@
+// testing simple blocks
+scope 
+{
+    let a = 0;
+}
+

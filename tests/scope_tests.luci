@@ -1,0 +1,27 @@
+let assert = fn(truth, msg) {
+    if (!truth) {
+        print("Assertion failure: ", msg, " ", truth);
+        exit(1);
+    } else {
+        print("Test passed: ", msg);
+    }
+};
+
+let test_name = "";
+test_name = "Testing if an if block print in a proper scope";
+let a = 0;
+if (true) {
+    let a = 1;
+    assert( a==1, test_name);
+}
+assert( a==0, test_name);
+
+test_name = "Testing if an while block print in a proper scope";
+let b = 0;
+while (true) {
+    let b = 1;
+    assert( b==1, test_name);
+    break;
+}
+assert( b==0, test_name);
+

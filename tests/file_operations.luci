@@ -1,0 +1,12 @@
+import test_help;
+
+let f = open("test.txt", "w");
+f.write("test");
+
+test_help::test_eq(f.tell(), 4, "file.tell");
+f.close();
+
+test_help::test_eq(f.is_open(), false, "file.is_open");
+
+print(type_str(f));
+

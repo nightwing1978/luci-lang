@@ -1,0 +1,11 @@
+let const name : str = "test_module";
+let const description : str = "test module";
+let const version : [int] = [1,0,0];
+
+let f : fn() -> null = fn() -> null
+{
+    print("f called");
+    return null;
+}
+
+print("In test_module.luci");

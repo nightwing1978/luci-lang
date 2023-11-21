@@ -1,0 +1,50 @@
+let assert = fn(truth, msg) {
+    if (!truth) {
+        print("Assertion failure: ", msg, " ", truth);
+        exit(1);
+    } else {
+        print("Test passed: ", msg);
+    }
+};
+
+let a = 5;
+let b = a;
+b = 3;
+print("a=", a);
+print("b=", b);
+
+let c = [0,1,2];
+let d = c;
+d[0] = 2;
+print("c=", c);
+print("d=", d);
+
+let e = [5,5,5,5];
+let f = 2;
+e[f] = f;
+print("e=",e);
+print("f=",f);
+f = 3;
+print("e=",e);
+print("f=",f);
+
+let i = [5,5,5,5];
+let g = fn(h) {
+    i[h] = h;
+}
+g(f);
+print("i=",i);
+print("f=",f);
+f = 4;
+print("i=",i);
+print("f=",f);
+
+let k = [1,1,1,1];
+let m = 2;
+k[m] = m;
+print("k=",k);
+print("m=",m);
+k[m]-= 1;
+print("k=",k);
+print("m=",m);
+
