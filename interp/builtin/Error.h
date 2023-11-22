@@ -7,8 +7,8 @@ namespace builtin
 {
     enum class ErrorType
     {
-        UndefinedError=0,       /* */
-        TypeError=1,              /* wrong number of arguments, wrong arguments */
+        UndefinedError = 0, /* */
+        TypeError = 1,      /* wrong number of arguments, wrong arguments */
     };
 
     std::shared_ptr<obj::BuiltinType> makeBuiltinTypeError();

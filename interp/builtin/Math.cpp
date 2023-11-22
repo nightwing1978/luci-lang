@@ -2,73 +2,71 @@
 #include "../Evaluator.h"
 #include "../Typing.h"
 
-namespace 
+namespace
 {
-	typedef double(*TBuiltinDoubleFunction)(double arg);
+    typedef double (*TBuiltinDoubleFunction)(double arg);
 
-	template<TBuiltinDoubleFunction double_fn>
-	std::shared_ptr<obj::Object> r_double_double_function(const std::vector<std::unique_ptr<ast::Expression> >* arguments, const std::shared_ptr<obj::Environment>& environment)
-	{
-		if (!arguments)
-			return NullObject;
+    template <TBuiltinDoubleFunction double_fn>
+    std::shared_ptr<obj::Object> r_double_double_function(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
+    {
+        if (!arguments)
+            return NullObject;
 
-		if (arguments->size() != 1)
-			return std::make_shared<obj::Error>("expected 1 argument");
+        if (arguments->size() != 1)
+            return std::make_shared<obj::Error>("expected 1 argument");
 
-		auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
-		auto errorObj = dynamic_cast<obj::Error*>(evaluatedExpr.get());
-		if (errorObj)
-			return evaluatedExpr;
+        auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
+        auto errorObj = dynamic_cast<obj::Error *>(evaluatedExpr.get());
+        if (errorObj)
+            return evaluatedExpr;
 
-		auto doubleObj = dynamic_cast<obj::Double*>(evaluatedExpr.get());
-		if (doubleObj)
-			return std::make_shared<obj::Double>(double_fn(doubleObj->value));
+        auto doubleObj = dynamic_cast<obj::Double *>(evaluatedExpr.get());
+        if (doubleObj)
+            return std::make_shared<obj::Double>(double_fn(doubleObj->value));
 
-		return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type)));
-	}
+        return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type)));
+    }
 }
 
 namespace builtin
 {
-	std::shared_ptr<obj::Object> pow_function(const std::vector<std::unique_ptr<ast::Expression> >* arguments, const std::shared_ptr<obj::Environment>& environment)
-	{
-		if (!arguments)
-			return NullObject;
+    std::shared_ptr<obj::Object> pow_function(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
+    {
+        if (!arguments)
+            return NullObject;
 
-		if (arguments->size() != 2)
-			return std::make_shared<obj::Error>("expected 2 argument");
+        if (arguments->size() != 2)
+            return std::make_shared<obj::Error>("expected 2 argument");
 
-		auto evaluatedExpr = evalExpression(arguments->at(0).get(), environment);
-		auto errorObj = dynamic_cast<obj::Error*>(evaluatedExpr.get());
-		if (errorObj)
-			return evaluatedExpr;
+        auto evaluatedExpr = evalExpression(arguments->at(0).get(), environment);
+        auto errorObj = dynamic_cast<obj::Error *>(evaluatedExpr.get());
+        if (errorObj)
+            return evaluatedExpr;
 
-		auto doubleObj = dynamic_cast<obj::Double*>(evaluatedExpr.get());
-		if (!doubleObj)
-			return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type)));
+        auto doubleObj = dynamic_cast<obj::Double *>(evaluatedExpr.get());
+        if (!doubleObj)
+            return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type)));
 
-		auto evaluatedSecondExpr = evalExpression(arguments->at(1).get(), environment);
-		auto errorObjSecond = dynamic_cast<obj::Error*>(evaluatedSecondExpr.get());
-		if (errorObjSecond)
-			return evaluatedSecondExpr;
+        auto evaluatedSecondExpr = evalExpression(arguments->at(1).get(), environment);
+        auto errorObjSecond = dynamic_cast<obj::Error *>(evaluatedSecondExpr.get());
+        if (errorObjSecond)
+            return evaluatedSecondExpr;
 
-		auto doubleSecondObj = dynamic_cast<obj::Double*>(evaluatedSecondExpr.get());
-		if (!doubleSecondObj)
-			return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedSecondExpr->type)));
+        auto doubleSecondObj = dynamic_cast<obj::Double *>(evaluatedSecondExpr.get());
+        if (!doubleSecondObj)
+            return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedSecondExpr->type)));
 
-		return std::make_shared<obj::Double>(pow(doubleObj->value, doubleSecondObj->value));
-	}
+        return std::make_shared<obj::Double>(pow(doubleObj->value, doubleSecondObj->value));
+    }
 
-
-    template<TBuiltinDoubleFunction double_fn>
-	std::shared_ptr<obj::Object> makeBuiltInDoubleFunctionObj()
-	{
-		auto func = std::make_shared<obj::Builtin>();
-		func->function = &r_double_double_function<double_fn>;
-        func->declaredType = typing::makeFunctionType("double","double");
-		return func;
-	}
-
+    template <TBuiltinDoubleFunction double_fn>
+    std::shared_ptr<obj::Object> makeBuiltInDoubleFunctionObj()
+    {
+        auto func = std::make_shared<obj::Builtin>();
+        func->function = &r_double_double_function<double_fn>;
+        func->declaredType = typing::makeFunctionType("double", "double");
+        return func;
+    }
 
     std::shared_ptr<obj::Module> createMathModule()
     {
@@ -91,7 +89,7 @@ namespace builtin
         mathModule->environment->add("tan", builtin::makeBuiltInDoubleFunctionObj<tan>(), false, nullptr);
         mathModule->environment->add("tgamma", builtin::makeBuiltInDoubleFunctionObj<tgamma>(), false, nullptr);
         mathModule->environment->add("trunc", builtin::makeBuiltInDoubleFunctionObj<trunc>(), false, nullptr);
-        mathModule->environment->add("pow", builtin::makeBuiltInFunctionObj(&builtin::pow_function,"double, double","double"), false, nullptr);
+        mathModule->environment->add("pow", builtin::makeBuiltInFunctionObj(&builtin::pow_function, "double, double", "double"), false, nullptr);
         mathModule->state = obj::ModuleState::Loaded;
         return mathModule;
     }

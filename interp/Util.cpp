@@ -1,36 +1,33 @@
 #include "Util.h"
 #include <sstream>
 
-
 namespace util
 {
-	std::string join(const std::vector<std::string>& strings, const std::string& separator)
-	{
-		if (strings.empty())
-			return std::string();
-
-		std::stringstream ss;
-		ss << strings.front();
-
-		for (size_t i = 1; i < strings.size(); ++i)
-		{
-			ss << separator << strings[i];
-		}
-		return ss.str();
-	}
-
-
-    std::string withEllipsis(const std::string& input, size_t max_length)
+    std::string join(const std::vector<std::string> &strings, const std::string &separator)
     {
-        if (input.size()<=max_length)
+        if (strings.empty())
+            return std::string();
+
+        std::stringstream ss;
+        ss << strings.front();
+
+        for (size_t i = 1; i < strings.size(); ++i)
+        {
+            ss << separator << strings[i];
+        }
+        return ss.str();
+    }
+
+    std::string withEllipsis(const std::string &input, size_t max_length)
+    {
+        if (input.size() <= max_length)
             return input;
 
         std::string without = input.substr(0, std::max<size_t>(3, max_length) - 3);
         return without + "...";
     }
 
-
-    namespace color 
+    namespace color
     {
         namespace fg
         {
@@ -56,7 +53,7 @@ namespace util
         }
 
         /* colorize the string and return back to the default color */
-        std::string colorize(const std::string& input, const std::string& color)
+        std::string colorize(const std::string &input, const std::string &color)
         {
             return color + input + fg::default_;
         }
