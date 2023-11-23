@@ -1,8 +1,8 @@
 let apply = fn( x, func ) {
     let i = 0;
     while (i<len(x)) {
-            func(x[i]);
-            i = i+1;
+        func(x[i]);
+        i = i+1;
     };
 }
 
