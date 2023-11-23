@@ -7,7 +7,7 @@
 
 namespace util
 {
-	std::string join(const std::vector<std::string>& strings, const std::string& separator);
+    std::string join(const std::vector<std::string> &strings, const std::string &separator);
 
     namespace color
     {
@@ -35,10 +35,10 @@ namespace util
         }
 
         /* colorize the string and return back to the default color */
-        std::string colorize(const std::string& input, const std::string& color);
+        std::string colorize(const std::string &input, const std::string &color);
     }
 
-    std::string withEllipsis(const std::string& input, size_t max_length);
+    std::string withEllipsis(const std::string &input, size_t max_length);
 }
 
 #endif

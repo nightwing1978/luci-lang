@@ -1,21 +1,21 @@
 let apply = fn( x, func ) {
     let i = 0;
     while (i<len(x)) {
-            func(x[i]);
-            i = i+1;
+        func(x[i]);
+        i = i+1;
     }
 }
 
-let range = fn( e ) {
+let my_range = fn( e ) {
     let i = 0;
     let result = [];
     while (i<e) {
-            append(result, i);
-            i = i+1;
+        append(result, i);
+        i = i+1;
     }
     return result;
 }
 
-apply( range(5), fn(x) {
+apply( my_range(5), fn(x) {
     print(x);
 });
