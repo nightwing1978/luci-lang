@@ -411,7 +411,7 @@ namespace obj
 
     std::string UserObject::inspect() const
     {
-        return "<" + type->name + ">";
+        return "<" + userType->name + ">";
     }
 
     std::string BoundBuiltinTypeFunction::inspect() const

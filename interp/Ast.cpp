@@ -111,7 +111,7 @@ namespace ast
         std::stringstream ss;
         ss << boundTo->text();
         ss << ".";
-        ss << type->text();
+        ss << boundType->text();
         return ss.str();
     };
 
@@ -160,8 +160,8 @@ namespace ast
         std::vector<std::string> params;
         for (size_t index = 0; index < arguments.size(); ++index)
         {
-            const auto &param(arguments[index]);
-            const auto &paramType(argumentTypes[index]);
+            const auto &param = arguments[index];
+            const auto &paramType = argumentTypes[index];
             std::stringstream ss;
             ss << param.text();
             if (paramType.get())
@@ -381,8 +381,8 @@ namespace ast
            << "\n";
         ss << indentation(indent) << statement->text() << "\n";
         ss << indentation(indent) << "except (" << name.text();
-        if (type)
-            ss << " : " << type->text();
+        if (errorType)
+            ss << " : " << errorType->text();
         ss << ")\n";
         ss << indentation(indent) << except->text() << "\n";
         return ss.str();
@@ -397,10 +397,10 @@ namespace ast
             ss << "const ";
         }
         ss << name.token.literal;
-        if (type.get())
+        if (valueType.get())
         {
             ss << " : ";
-            ss << type->text();
+            ss << valueType->text();
         }
         ss << " = ";
         if (value)
@@ -436,10 +436,10 @@ namespace ast
             ss << "const ";
         }
         ss << name.token.literal;
-        if (type.get())
+        if (exprType.get())
         {
             ss << " : ";
-            ss << type->text();
+            ss << exprType->text();
         }
         ss << " = ";
         if (value)

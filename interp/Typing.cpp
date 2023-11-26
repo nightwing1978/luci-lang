@@ -170,7 +170,7 @@ namespace typing
         {
             auto typeIdentifier = std::make_unique<ast::TypeIdentifier>();
             auto userObj = static_cast<obj::UserObject *>(obj);
-            typeIdentifier->value = userObj->type->name;
+            typeIdentifier->value = userObj->userType->name;
             return std::move(typeIdentifier);
         }
         case obj::ObjectType::BoundUserTypeFunction:
@@ -185,7 +185,7 @@ namespace typing
 
             auto boundType = std::make_unique<ast::BoundType>();
             boundType->boundTo = computeType(function->boundTo.get());
-            boundType->type = std::move(typeFunction);
+            boundType->boundType = std::move(typeFunction);
             return std::move(boundType);
         }
         case obj::ObjectType::BoundUserTypeProperty:
@@ -199,7 +199,7 @@ namespace typing
             auto function = static_cast<obj::BoundBuiltinTypeFunction *>(obj);
             auto boundType = std::make_unique<ast::BoundType>();
             boundType->boundTo = computeType(function->boundTo.get());
-            boundType->type = function->functionType->clone();
+            boundType->boundType = function->functionType->clone();
             return std::move(boundType);
         }
         case obj::ObjectType::BoundBuiltinTypeProperty:

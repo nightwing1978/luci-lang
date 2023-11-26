@@ -682,7 +682,11 @@ std::vector<std::unique_ptr<ast::Expression>> Parser::parseExpressionList(const 
 
     advanceTokens();
 
-    arguments.push_back(parseExpression(Precedence::LOWEST));
+    auto firstElement = parseExpression(Precedence::LOWEST);
+    if (!firstElement)
+        return arguments;
+
+    arguments.push_back(std::move(firstElement));
 
     while (peekToken.type == TokenType::COMMA)
     {
@@ -811,8 +815,8 @@ std::unique_ptr<ast::Expression> Parser::parseForExpression()
         advanceTokens(); // eat the colon
 
         // the type definition is either a list of types or just a single type
-        auto type = parseTypeExpression(Precedence::LOWEST);
-        forExpression->type = std::move(type);
+        auto iterType = parseTypeExpression(Precedence::LOWEST);
+        forExpression->iterType = std::move(iterType);
         advanceTokens();
     }
 
@@ -944,8 +948,8 @@ std::unique_ptr<ast::LetStatement> Parser::parseLetStatement()
         advanceTokens(); // eat the colon
 
         // the type definition is either a list of types or just a single type
-        auto type = parseTypeExpression(Precedence::LOWEST);
-        letStatement->type = std::move(type);
+        auto valueType = parseTypeExpression(Precedence::LOWEST);
+        letStatement->valueType = std::move(valueType);
         advanceTokens();
     }
 
@@ -1034,7 +1038,7 @@ std::unique_ptr<ast::TypeStatement> Parser::parseTypeStatement()
 
         // the type definition is either a list of types or just a single type
         auto type = parseTypeExpression(Precedence::LOWEST);
-        typeStatement->type = std::move(type);
+        typeStatement->exprType = std::move(type);
         advanceTokens();
     }
 

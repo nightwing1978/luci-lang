@@ -217,13 +217,13 @@ namespace ast
     struct BoundType : public TypeExpression
     {
         std::unique_ptr<TypeExpression> boundTo;
-        std::unique_ptr<TypeExpression> type;
+        std::unique_ptr<TypeExpression> boundType;
         virtual std::string text(int indent = 0) const override;
         virtual std::unique_ptr<TypeExpression> clone() const override
         {
             auto boundType = std::make_unique<ast::BoundType>();
             boundType->boundTo = boundTo->clone();
-            boundType->type = type->clone();
+            boundType->boundType = boundType->clone();
             return boundType;
         };
         BoundType() : TypeExpression(NodeType::BoundType){};
@@ -293,21 +293,21 @@ namespace ast
 
     struct BooleanLiteral : public Expression
     {
-        bool value;
+        bool value = false;
         virtual std::string text(int indent = 0) const override;
         BooleanLiteral() : Expression(NodeType::BooleanLiteral){};
     };
 
     struct IntegerLiteral : public Expression
     {
-        int64_t value;
+        int64_t value = 0;
         virtual std::string text(int indent = 0) const override;
         IntegerLiteral() : Expression(NodeType::IntegerLiteral){};
     };
 
     struct DoubleLiteral : public Expression
     {
-        double value;
+        double value = 0.0;
         virtual std::string text(int indent = 0) const override;
         DoubleLiteral() : Expression(NodeType::DoubleLiteral){};
     };
@@ -451,7 +451,7 @@ namespace ast
     {
         bool constant = false;
         Identifier name;
-        std::unique_ptr<TypeExpression> type;
+        std::unique_ptr<TypeExpression> valueType;
         std::unique_ptr<Expression> value;
         virtual std::string text(int indent = 0) const override;
         LetStatement() : Statement(NodeType::LetStatement){};
@@ -468,7 +468,7 @@ namespace ast
     {
         bool constant = false;
         Identifier name;
-        std::unique_ptr<TypeExpression> type;
+        std::unique_ptr<TypeExpression> iterType;
         std::unique_ptr<Expression> iterable;
         std::unique_ptr<BlockStatement> statement;
         virtual std::string text(int indent = 0) const override;
@@ -479,7 +479,7 @@ namespace ast
     {
         bool constant = false;
         Identifier name;
-        std::unique_ptr<TypeExpression> type;
+        std::unique_ptr<TypeExpression> exprType;
         std::unique_ptr<Expression> value;
         virtual std::string text(int indent = 0) const override;
         TypeStatement() : Statement(NodeType::TypeStatement){};
@@ -513,7 +513,7 @@ namespace ast
         std::unique_ptr<BlockStatement> statement;
         std::unique_ptr<BlockStatement> except;
         Identifier name;
-        std::unique_ptr<TypeExpression> type;
+        std::unique_ptr<TypeExpression> errorType;
         TryExceptStatement() : Statement(NodeType::TryExceptStatement){};
     };
 

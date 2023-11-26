@@ -9,6 +9,7 @@
 #include "Parser.h"
 #include "Evaluator.h"
 #include "Util.h"
+#include "Version.h"
 
 int interactiveMode(std::shared_ptr<obj::Environment> environment)
 {
@@ -59,13 +60,41 @@ int interactiveMode(std::shared_ptr<obj::Environment> environment)
     return 0;
 }
 
-void usage(int argc, char *argv)
+void usage(int argc, char **argv)
 {
     std::cout << argv[0] << "\n";
     std::cout << "Usage: \n";
-    std::cout << argv[0] << " [-i] [file_name]\n";
+    std::cout << argv[0] << " [-i] [-s] [-v] [file_name]\n";
     std::cout << "  -i			enter interactive mode after running the provided file_name\n";
+    std::cout << "  -s			print statistics\n";
+    std::cout << "  -v			print version\n";
+    std::cout << "  -h			show this usage\n";
     std::cout << "  file_name	run the given file_name, when none given, enter interactive mode\n";
+}
+
+std::string compilerName()
+{
+#ifdef __GNUC__
+    return "GCC";
+#endif
+
+#ifdef __clang__
+    return "Clang";
+#endif
+
+#ifdef _MSC_VER
+    return "MSVC";
+#endif
+
+#ifdef __MINGW32__
+    return "MinGW";
+#endif
+}
+
+void version(int argc, char **argv)
+{
+    std::cout << "Luci " << majorVersion << "." << minorVersion << "." << patchVersion << " (" << compilerName() << ")"
+              << "\n";
 }
 
 int main(int argc, char **argv)
@@ -73,9 +102,22 @@ try
 {
     //
     double cumulativeTime = 0.0;
-    std::string interactiveArgShort = "-i";
-    std::string interactiveArgLong = "--interactive";
+
+    const std::string interactiveArgShort = "-i";
+    const std::string interactiveArgLong = "--interactive";
     bool enterInteractive = false;
+
+    const std::string statsArgShort = "-s";
+    const std::string statsArgLong = "--statistics";
+    bool showStatistics = false;
+
+    const std::string versionArgShort = "-v";
+    const std::string versionArgLong = "--version";
+    bool showVersion = false;
+
+    const std::string helpArgShort = "-h";
+    const std::string helpArgLong = "--help";
+    bool showHelp = false;
 
     std::string fileToRun = "";
 
@@ -89,7 +131,29 @@ try
     }
     else
     {
-        fileToRun = std::string(argv[1]);
+        for (int i = 1; i < argc; ++i)
+        {
+            if (argv[i] == statsArgShort || argv[i] == statsArgLong)
+            {
+                showStatistics = true;
+            }
+            else if (argv[i] == interactiveArgShort || argv[i] == interactiveArgLong)
+            {
+                enterInteractive = true;
+            }
+            else if (argv[i] == helpArgShort || argv[i] == helpArgLong)
+            {
+                usage(argc, argv);
+                return 0;
+            }
+            else if (argv[i] == versionArgShort || argv[i] == versionArgLong)
+            {
+                version(argc, argv);
+                return 0;
+            }
+
+            fileToRun = std::string(argv[i]);
+        }
     }
 
     if (!fileToRun.empty())
@@ -161,12 +225,15 @@ try
     environment.reset();
     finalize();
 
-    std::cout << "Object statistics:" << std::endl;
-    std::cout << " created: " << obj::Object::instancesConstructed << ", destructed: " << obj::Object::instancesDestructed << std::endl;
-    std::cout << " user objects wrongly destructed: " << obj::UserObject::userInstancesWronglyDestructed << std::endl;
-    std::cout << "Environment statistics:" << std::endl;
-    std::cout << " created: " << obj::Environment::instancesConstructed << ", destructed: " << obj::Environment::instancesDestructed << std::endl;
-    std::cout << "Usertime: " << cumulativeTime << "ms" << std::endl;
+    if (showStatistics)
+    {
+        std::cout << "Object statistics:" << std::endl;
+        std::cout << " created: " << obj::Object::instancesConstructed << ", destructed: " << obj::Object::instancesDestructed << std::endl;
+        std::cout << " user objects wrongly destructed: " << obj::UserObject::userInstancesWronglyDestructed << std::endl;
+        std::cout << "Environment statistics:" << std::endl;
+        std::cout << " created: " << obj::Environment::instancesConstructed << ", destructed: " << obj::Environment::instancesDestructed << std::endl;
+        std::cout << "Usertime: " << cumulativeTime << "ms" << std::endl;
+    }
 
     return returnValue;
 }

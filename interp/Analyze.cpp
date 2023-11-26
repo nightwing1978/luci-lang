@@ -42,9 +42,9 @@ void analyzeProgram(ast::Program *program)
         {
             std::cout << "LetStatement: " << util::withEllipsis(node->text(), maxSizeWithEllipsis) << std::endl;
             auto letStatement = static_cast<ast::LetStatement *>(node);
-            if (letStatement->type)
+            if (letStatement->valueType)
             {
-                std::cout << "  " << util::withEllipsis(letStatement->type->text(), maxSizeWithEllipsis) << std::endl;
+                std::cout << "  " << util::withEllipsis(letStatement->valueType->text(), maxSizeWithEllipsis) << std::endl;
             }
             else
             {

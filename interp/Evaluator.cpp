@@ -84,9 +84,9 @@ namespace
         case obj::ObjectType::Char:
         case obj::ObjectType::Double:
         case obj::ObjectType::Complex:
-        {
             return true;
-        }
+        default:
+            return false;
         }
         return false;
     }
@@ -2110,7 +2110,7 @@ std::shared_ptr<obj::Object> evalMemberExpression(ast::MemberExpression *memberE
     else if (exprType == obj::ObjectType::UserObject)
     {
         auto userObject = static_cast<obj::UserObject *>(expr.get());
-        auto typeObjectPtr = userObject->type.get();
+        auto typeObjectPtr = userObject->userType.get();
         auto memberFunctionIt = typeObjectPtr->functions.find(memberExpression->value.value);
         if (memberFunctionIt != typeObjectPtr->functions.end())
         {
@@ -2934,14 +2934,14 @@ std::shared_ptr<obj::Object> evalForExpression(const ast::ForExpression *forExpr
         if (iteratorValue->type == obj::ObjectType::Error)
             return addTokenInCaseOfError(iteratorValue, forExpr->statement->token);
 
-        if (!typing::isCompatibleType(forExpr->type.get(), iteratorValue.get(), nullptr))
+        if (!typing::isCompatibleType(forExpr->iterType.get(), iteratorValue.get(), nullptr))
         {
-            std::string expectedTypeStr = forExpr->type->text();
+            std::string expectedTypeStr = forExpr->iterType->text();
             std::string gottenTypeStr = typing::computeType(iteratorValue.get())->text();
             return std::make_shared<obj::Error>(obj::Error("Incompatible type for loop variable " + forExpr->name.value + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, forExpr->token));
         }
 
-        newEnvironment->add(forExpr->name.value, iteratorValue, forExpr->constant, forExpr->type.get());
+        newEnvironment->add(forExpr->name.value, iteratorValue, forExpr->constant, forExpr->iterType.get());
         auto retValue = evalStatement(forExpr->statement.get(), newEnvironment);
         auto desRetValue = evalUserObjectDestructors(newEnvironment);
         if (desRetValue->type == obj::ObjectType::Error || desRetValue->type == obj::ObjectType::Exit)
@@ -3203,9 +3203,9 @@ std::shared_ptr<obj::Object> evalCallExpression(ast::CallExpression *callExpr, c
          */
         auto typeObj = static_cast<obj::UserType *>(function.get());
         auto userObj = std::make_shared<obj::UserObject>();
-        userObj->type = std::dynamic_pointer_cast<obj::UserType>(function);
+        userObj->userType = std::dynamic_pointer_cast<obj::UserType>(function);
 
-        for (const auto &[k, v] : userObj->type->properties)
+        for (const auto &[k, v] : userObj->userType->properties)
             userObj->properties[k] = obj::TPropertyObj({v.obj->clone(), v.constant, v.type});
 
         auto createFunc = typeObj->functions.find("construct");
@@ -3273,7 +3273,7 @@ std::shared_ptr<obj::Object> evalTypeLiteral(ast::TypeLiteral *typeLiteral, cons
         else
         {
             auto obj = evalExpression(typeDefinition->value.get(), nullptr);
-            type->properties.insert_or_assign(propertyOrFuncName, obj::TPropertyObj({obj, typeDefinition->constant, typeDefinition->type.get()}));
+            type->properties.insert_or_assign(propertyOrFuncName, obj::TPropertyObj({obj, typeDefinition->constant, typeDefinition->exprType.get()}));
         }
     }
     environment->add(type->name, type, false, nullptr);
@@ -3587,23 +3587,23 @@ std::shared_ptr<obj::Object> evalLetStatement(ast::LetStatement *statement, cons
     if (!statement || !environment)
         return NullObject;
 
-    auto exprValue = evalExpression(statement->value.get(), environment, statement->type.get());
-    if (!typing::isCompatibleType(statement->type.get(), exprValue.get(), nullptr))
+    auto exprValue = evalExpression(statement->value.get(), environment, statement->valueType.get());
+    if (!typing::isCompatibleType(statement->valueType.get(), exprValue.get(), nullptr))
     {
-        return std::make_shared<obj::Error>(obj::Error("Incompatible type " + statement->type->text() + " for " + statement->value->tokenLiteral(), statement->value->token));
+        return std::make_shared<obj::Error>(obj::Error("Incompatible type " + statement->valueType->text() + " for " + statement->value->tokenLiteral(), statement->valueType->token));
     }
     // auto retValue = environment->add(statement->name.tokenLiteral(), std::move(exprValue), statement->constant, statement->type.get());
     std::shared_ptr<obj::Object> retValue;
     if (isValueAssigned(exprValue))
     {
-        retValue = environment->add(statement->name.tokenLiteral(), exprValue->clone(), statement->constant, statement->type.get());
+        retValue = environment->add(statement->name.tokenLiteral(), exprValue->clone(), statement->constant, statement->valueType.get());
     }
     else
     {
-        retValue = environment->add(statement->name.tokenLiteral(), std::move(exprValue), statement->constant, statement->type.get());
+        retValue = environment->add(statement->name.tokenLiteral(), std::move(exprValue), statement->constant, statement->valueType.get());
     }
 
-    retValue->declaredType = statement->type.get();
+    retValue->declaredType = statement->valueType.get();
     if (retValue->type == obj::ObjectType::Error)
         return addTokenInCaseOfError(retValue, statement->token);
 

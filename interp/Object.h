@@ -124,9 +124,9 @@ namespace obj
 
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Module>(); };
-        virtual std::size_t hash() const { return 0; };
-        virtual bool hashAble() const { return false; };
-        virtual bool eq(const Object *other) const { return false; };
+        virtual std::size_t hash() const override { return 0; };
+        virtual bool hashAble() const override { return false; };
+        virtual bool eq(const Object *other) const override { return false; };
 
         Module();
     };
@@ -135,9 +135,9 @@ namespace obj
     {
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Null>(); };
-        virtual std::size_t hash() const { return 0; };
-        virtual bool hashAble() const { return true; };
-        virtual bool eq(const Object *other) const { return true; };
+        virtual std::size_t hash() const override { return 0; };
+        virtual bool hashAble() const override { return true; };
+        virtual bool eq(const Object *other) const override { return true; };
 
         Null() : Object(ObjectType::Null){};
     };
@@ -147,9 +147,9 @@ namespace obj
         int64_t value;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Integer>(value); };
-        virtual std::size_t hash() const { return std::hash<int64_t>{}(value); };
-        virtual bool hashAble() const { return true; };
-        virtual bool eq(const Object *other) const { return static_cast<const obj::Integer *>(other)->value == value; };
+        virtual std::size_t hash() const override { return std::hash<int64_t>{}(value); };
+        virtual bool hashAble() const override { return true; };
+        virtual bool eq(const Object *other) const override { return static_cast<const obj::Integer *>(other)->value == value; };
         Integer(int64_t ivalue) : Object(ObjectType::Integer), value(ivalue){};
         virtual ~Integer();
     };
@@ -159,9 +159,9 @@ namespace obj
         double value;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Double>(value); };
-        virtual std::size_t hash() const { return std::hash<double>{}(value); };
-        virtual bool hashAble() const { return true; };
-        virtual bool eq(const Object *other) const { return static_cast<const obj::Double *>(other)->value == value; };
+        virtual std::size_t hash() const override { return std::hash<double>{}(value); };
+        virtual bool hashAble() const override { return true; };
+        virtual bool eq(const Object *other) const override { return static_cast<const obj::Double *>(other)->value == value; };
         Double(double ivalue) : Object(ObjectType::Double), value(ivalue){};
     };
 
@@ -170,9 +170,9 @@ namespace obj
         std::complex<double> value;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Complex>(value); };
-        virtual std::size_t hash() const { return std::hash<double>{}(value.real()) ^ std::hash<double>{}(value.imag()); };
-        virtual bool hashAble() const { return true; };
-        virtual bool eq(const Object *other) const { return static_cast<const obj::Complex *>(other)->value == value; };
+        virtual std::size_t hash() const override { return std::hash<double>{}(value.real()) ^ std::hash<double>{}(value.imag()); };
+        virtual bool hashAble() const override { return true; };
+        virtual bool eq(const Object *other) const override { return static_cast<const obj::Complex *>(other)->value == value; };
         Complex(const std::complex<double> &ivalue) : Object(ObjectType::Complex), value(ivalue){};
     };
 
@@ -181,9 +181,9 @@ namespace obj
         bool value;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Boolean>(value); };
-        virtual std::size_t hash() const { return std::hash<bool>{}(value); };
-        virtual bool hashAble() const { return true; };
-        virtual bool eq(const Object *other) const { return static_cast<const obj::Boolean *>(other)->value == value; };
+        virtual std::size_t hash() const override { return std::hash<bool>{}(value); };
+        virtual bool hashAble() const override { return true; };
+        virtual bool eq(const Object *other) const override { return static_cast<const obj::Boolean *>(other)->value == value; };
         Boolean(bool ivalue) : Object(ObjectType::Boolean), value(ivalue){};
     };
 
@@ -192,9 +192,9 @@ namespace obj
         int value;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Char>(value); };
-        virtual std::size_t hash() const { return std::hash<int>{}(value); };
-        virtual bool hashAble() const { return true; };
-        virtual bool eq(const Object *other) const { return static_cast<const obj::Char *>(other)->value == value; };
+        virtual std::size_t hash() const override { return std::hash<int>{}(value); };
+        virtual bool hashAble() const override { return true; };
+        virtual bool eq(const Object *other) const override { return static_cast<const obj::Char *>(other)->value == value; };
         Char(int ivalue) : Object(ObjectType::Char), value(ivalue){};
     };
 
@@ -203,9 +203,9 @@ namespace obj
         std::string value;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::String>(value); };
-        virtual std::size_t hash() const { return std::hash<std::string>{}(value); };
-        virtual bool hashAble() const { return true; };
-        virtual bool eq(const Object *other) const { return static_cast<const obj::String *>(other)->value == value; };
+        virtual std::size_t hash() const override { return std::hash<std::string>{}(value); };
+        virtual bool hashAble() const override { return true; };
+        virtual bool eq(const Object *other) const override { return static_cast<const obj::String *>(other)->value == value; };
 
         String(const std::string &ivalue) : Object(ObjectType::String), value(ivalue){};
         virtual ~String();
@@ -280,7 +280,7 @@ namespace obj
                 values.push_back(v->clone());
             return std::make_shared<obj::Array>(values);
         };
-        virtual bool eq(const Object *other) const
+        virtual bool eq(const Object *other) const override
         {
             const obj::Array *otherArray = static_cast<const obj::Array *>(other);
             if (value.size() != otherArray->value.size())
@@ -296,7 +296,7 @@ namespace obj
             }
             return true;
         };
-        bool hashAble() const { return frozen > 0; };
+        virtual bool hashAble() const override { return frozen > 0; };
 
         Array(const std::vector<std::shared_ptr<Object>> &ivalue) : Object(ObjectType::Array), value(ivalue){};
         Array(const std::vector<double> &ivalue);
@@ -318,8 +318,8 @@ namespace obj
         {
             return std::make_shared<obj::ArrayIterator<TArrayType>>(array, index);
         }
-        virtual bool isValid() const { return index < array->value.size(); };
-        virtual std::shared_ptr<Object> next()
+        virtual bool isValid() const override { return index < array->value.size(); };
+        virtual std::shared_ptr<Object> next() override
         {
             if (isValid())
             {
@@ -345,7 +345,7 @@ namespace obj
             return std::make_shared<RangeIterator>(rangeObj, current);
         }
         virtual bool isValid() const { return current < rangeObj->upper; };
-        virtual std::shared_ptr<Object> next()
+        virtual std::shared_ptr<Object> next() override
         {
             if (isValid())
             {
@@ -372,11 +372,11 @@ namespace obj
         {
             return std::make_shared<StringIterator>(stringObj, index);
         }
-        virtual bool isValid() const
+        virtual bool isValid() const override
         {
             return index < stringObj->value.size();
         };
-        virtual std::shared_ptr<Object> next()
+        virtual std::shared_ptr<Object> next() override
         {
             if (isValid())
             {
@@ -457,13 +457,13 @@ namespace obj
         {
             return std::make_shared<DictionaryIterator>(dict, iterator);
         }
-        virtual bool isValid() const
+        virtual bool isValid() const override
         {
             if (!dict)
                 return false;
             return iterator != dict->value.end();
         };
-        virtual std::shared_ptr<Object> next()
+        virtual std::shared_ptr<Object> next() override
         {
             if (isValid())
             {
@@ -490,13 +490,13 @@ namespace obj
         {
             return std::make_shared<SetIterator>(setObj, iterator);
         }
-        virtual bool isValid() const
+        virtual bool isValid() const override
         {
             if (!setObj)
                 return false;
             return iterator != setObj->value.end();
         };
-        virtual std::shared_ptr<Object> next()
+        virtual std::shared_ptr<Object> next() override
         {
             if (isValid())
             {
@@ -600,7 +600,7 @@ namespace obj
 
     struct BuiltinType : public Object
     {
-        obj::ObjectType builtinObjectType;
+        obj::ObjectType builtinObjectType = obj::ObjectType::Unknown;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<BuiltinType>(); };
         BuiltinType() : Object(ObjectType::BuiltinType){};
@@ -634,7 +634,7 @@ namespace obj
     {
         static std::atomic_int userInstancesWronglyDestructed;
 
-        std::shared_ptr<UserType> type;
+        std::shared_ptr<UserType> userType;
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<UserType>(); };
         std::unordered_map<std::string, TPropertyObj> properties;
