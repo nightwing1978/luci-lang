@@ -151,8 +151,10 @@ try
                 version(argc, argv);
                 return 0;
             }
-
-            fileToRun = std::string(argv[i]);
+            else
+            {
+                fileToRun = std::string(argv[i]);
+            }
         }
     }
 
