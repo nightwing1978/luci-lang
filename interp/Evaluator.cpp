@@ -18,8 +18,11 @@
 #include "builtin/Array.h"
 #include "builtin/Dictionary.h"
 #include "builtin/Error.h"
+#include "builtin/ErrorType.h"
 #include "builtin/IO.h"
 #include "builtin/Math.h"
+#include "builtin/OS.h"
+#include "builtin/Regex.h"
 #include "builtin/Set.h"
 #include "builtin/String.h"
 #include "builtin/Freeze.h"
@@ -132,7 +135,7 @@ namespace builtin
     std::shared_ptr<obj::Object> exit(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
     {
         if (arguments->size() > 1)
-            return std::make_shared<obj::Error>("exit: expected zero or 1 arguments");
+            return std::make_shared<obj::Error>("exit: expected zero or 1 arguments", obj::ErrorType::TypeError);
 
         int retValue = 0;
         if (!arguments->empty())
@@ -140,7 +143,7 @@ namespace builtin
             auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
             auto intObj = dynamic_cast<obj::Integer *>(evaluatedExpr.get());
             if (!intObj)
-                return std::make_shared<obj::Error>("exit: argument needs to be of type int");
+                return std::make_shared<obj::Error>("exit: argument needs to be of type int", obj::ErrorType::TypeError);
             retValue = static_cast<int>(intObj->value);
         }
         return std::make_shared<obj::Exit>(retValue);
@@ -152,7 +155,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 0)
-            return std::make_shared<obj::Error>("version: expected no arguments");
+            return std::make_shared<obj::Error>("version: expected no arguments", obj::ErrorType::TypeError);
 
         std::vector<std::shared_ptr<obj::Object>> values;
         values.push_back(std::make_shared<obj::Integer>(majorVersion));
@@ -167,7 +170,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 0)
-            return std::make_shared<obj::Error>("arg: expected no arguments");
+            return std::make_shared<obj::Error>("arg: expected no arguments", obj::ErrorType::TypeError);
 
         std::vector<std::shared_ptr<obj::Object>> values;
         for (const auto &argument : argsFromEnvironment)
@@ -181,7 +184,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("address: expected 1 argument");
+            return std::make_shared<obj::Error>("address: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto addr = reinterpret_cast<uint64_t>(evaluatedExpr.get());
@@ -194,7 +197,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("lookup_hash: expected 1 argument");
+            return std::make_shared<obj::Error>("lookup_hash: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto hash = obj::Hash().operator()(evaluatedExpr);
@@ -207,7 +210,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("lookup_hashable: expected 1 argument");
+            return std::make_shared<obj::Error>("lookup_hashable: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         return std::make_shared<obj::Boolean>(obj::Boolean(evaluatedExpr->hashAble()));
@@ -219,7 +222,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 2)
-            return std::make_shared<obj::Error>("lookup_equal: expected 2 arguments");
+            return std::make_shared<obj::Error>("lookup_equal: expected 2 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
         auto evaluatedExpr2 = evalExpression(arguments->front().get(), environment);
@@ -233,12 +236,12 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("type_str: expected 1 argument");
+            return std::make_shared<obj::Error>("type_str: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto typeExpr = typing::computeType(evaluatedExpr.get());
         if (typeExpr == nullptr)
-            return std::make_shared<obj::Error>("type_str: cannot compute type");
+            return std::make_shared<obj::Error>("type_str: cannot compute type", obj::ErrorType::TypeError);
 
         return std::make_shared<obj::String>(typeExpr->text());
     }
@@ -249,7 +252,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("type_str: expected 1 argument");
+            return std::make_shared<obj::Error>("type_str: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         return std::make_shared<obj::String>(obj::toString(evaluatedExpr->type));
@@ -294,7 +297,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 0)
-            return std::make_shared<obj::Error>("input_line: expected 1 argument");
+            return std::make_shared<obj::Error>("input_line: expected 1 argument", obj::ErrorType::TypeError);
 
         std::string input;
         std::cin >> input;
@@ -307,7 +310,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("doc: expected 1 argument");
+            return std::make_shared<obj::Error>("doc: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type == obj::ObjectType::Function)
@@ -332,18 +335,18 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() < 1 || arguments->size() > 2)
-            return std::make_shared<obj::Error>("open: expected 1 or 2 argument");
+            return std::make_shared<obj::Error>("open: expected 1 or 2 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr1->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("open: expected argument 1 to be a string");
+            return std::make_shared<obj::Error>("open: expected argument 1 to be a string", obj::ErrorType::TypeError);
 
         std::string mode = "r";
         if (arguments->size() == 2)
         {
             auto evaluatedExpr2 = evalExpression((*arguments)[1].get(), environment);
             if (evaluatedExpr2->type != obj::ObjectType::String)
-                return std::make_shared<obj::Error>("open: expected argument 2 to be a string");
+                return std::make_shared<obj::Error>("open: expected argument 2 to be a string", obj::ErrorType::TypeError);
             mode = static_cast<obj::String *>(evaluatedExpr2.get())->value;
         }
 
@@ -361,7 +364,7 @@ namespace builtin
             std::vector<std::string> openModeChoices;
             for (const auto &[k, v] : openModeMapping)
                 openModeChoices.push_back(k);
-            return std::make_shared<obj::Error>("open: openmode has to be one of " + util::join(openModeChoices, ",") + ", got " + mode);
+            return std::make_shared<obj::Error>("open: openmode has to be one of " + util::join(openModeChoices, ",") + ", got " + mode, obj::ErrorType::TypeError);
         }
 
         std::ios_base::openmode openMode = openModeMapping.at(mode);
@@ -382,7 +385,7 @@ namespace builtin
             std::stringstream ss;
             for (const auto &msg : parser->errorMsgs)
                 ss << msg << std::endl;
-            return std::make_shared<obj::Error>("run: parsing errors encountered: " + ss.str());
+            return std::make_shared<obj::Error>("run: parsing errors encountered: " + ss.str(), obj::ErrorType::SyntaxError);
         }
 
         return evalProgram(program.get(), environment);
@@ -394,11 +397,11 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("run: expected 1 argument");
+            return std::make_shared<obj::Error>("run: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr1->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("run: expected argument 1 to be a string");
+            return std::make_shared<obj::Error>("run: expected argument 1 to be a string", obj::ErrorType::TypeError);
 
         std::string fileToRun = static_cast<obj::String *>(evaluatedExpr1.get())->value;
         std::string text;
@@ -412,7 +415,7 @@ namespace builtin
         }
         else
         {
-            return std::make_shared<obj::Error>("run: " + fileToRun + " cannot be read");
+            return std::make_shared<obj::Error>("run: " + fileToRun + " cannot be read", obj::ErrorType::OSError);
         }
 
         return run_impl(text, fileToRun, environment);
@@ -424,11 +427,11 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("import: expected 1");
+            return std::make_shared<obj::Error>("import: expected 1", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr1->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("run: expected argument 1 to be a string");
+            return std::make_shared<obj::Error>("run: expected argument 1 to be a string", obj::ErrorType::TypeError);
 
         std::string fileToRun = static_cast<obj::String *>(evaluatedExpr1.get())->value;
         std::string text;
@@ -442,7 +445,7 @@ namespace builtin
         }
         else
         {
-            return std::make_shared<obj::Error>("import: " + fileToRun + " cannot be read");
+            return std::make_shared<obj::Error>("import: " + fileToRun + " cannot be read", obj::ErrorType::OSError);
         }
 
         auto newEnvironment = makeNewEnvironment(nullptr);
@@ -461,11 +464,11 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("run: expected 1 or 2 argument");
+            return std::make_shared<obj::Error>("run: expected 1 or 2 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr1->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("run: expected argument 1 to be a string");
+            return std::make_shared<obj::Error>("run: expected argument 1 to be a string", obj::ErrorType::TypeError);
 
         std::string fileToRun = static_cast<obj::String *>(evaluatedExpr1.get())->value;
         std::filesystem::path fileToRunPath = std::filesystem::canonical(std::filesystem::path(fileToRun));
@@ -485,7 +488,7 @@ namespace builtin
         }
         else
         {
-            return std::make_shared<obj::Error>("run: " + fileToRun + " cannot be read");
+            return std::make_shared<obj::Error>("run: " + fileToRun + " cannot be read", obj::ErrorType::OSError);
         }
 
         return run_impl(text, fileToRun, environment);
@@ -506,7 +509,7 @@ namespace builtin
     std::shared_ptr<obj::Object> scope_names(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
     {
         if (arguments->size() != 0)
-            return std::make_shared<obj::Error>("scope_names: expected no arguments");
+            return std::make_shared<obj::Error>("scope_names: expected no arguments", obj::ErrorType::TypeError);
 
         std::vector<std::string> names;
         if (environment)
@@ -525,7 +528,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("clone: expected 1 argument");
+            return std::make_shared<obj::Error>("clone: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         return evaluatedExpr->clone();
@@ -537,14 +540,14 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("error: expected 1 argument");
+            return std::make_shared<obj::Error>("error: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("error: expected 1 argument to be a string");
+            return std::make_shared<obj::Error>("error: expected 1 argument to be a string", obj::ErrorType::TypeError);
 
         auto stringValue = static_cast<obj::String *>(evaluatedExpr.get());
-        return std::make_shared<obj::Error>(stringValue->value);
+        return std::make_shared<obj::Error>(stringValue->value, obj::ErrorType::UndefinedError);
     }
 
     std::shared_ptr<obj::Object> array(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -553,7 +556,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() > 1)
-            return std::make_shared<obj::Error>("array: expected no or one argument");
+            return std::make_shared<obj::Error>("array: expected no or one argument", obj::ErrorType::TypeError);
 
         std::vector<std::shared_ptr<obj::Object>> values;
 
@@ -572,7 +575,7 @@ namespace builtin
             }
             break;
             default:
-                return std::make_shared<obj::Error>("array: cannot convert first argument");
+                return std::make_shared<obj::Error>("array: cannot convert first argument", obj::ErrorType::TypeError);
             };
         }
 
@@ -585,7 +588,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() > 1)
-            return std::make_shared<obj::Error>("array_double: expected at most 1 argument");
+            return std::make_shared<obj::Error>("array_double: expected at most 1 argument", obj::ErrorType::TypeError);
 
         std::vector<double> values;
         if (arguments->size() == 1)
@@ -596,7 +599,7 @@ namespace builtin
             if (evalExpr->type == obj::ObjectType::ArrayDouble)
                 values = static_cast<obj::ArrayDouble *>(evalExpr.get())->value;
             else
-                return std::make_shared<obj::Error>("array_double: cannot convert argument");
+                return std::make_shared<obj::Error>("array_double: cannot convert argument", obj::ErrorType::TypeError);
         }
         return std::make_shared<obj::ArrayDouble>(values);
     }
@@ -607,7 +610,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() > 1)
-            return std::make_shared<obj::Error>("array_complex: expected at most 1 argument");
+            return std::make_shared<obj::Error>("array_complex: expected at most 1 argument", obj::ErrorType::TypeError);
 
         std::vector<std::complex<double>> values;
         if (arguments->size() == 1)
@@ -618,7 +621,7 @@ namespace builtin
             if (evalExpr->type == obj::ObjectType::ArrayComplex)
                 values = static_cast<obj::ArrayComplex *>(evalExpr.get())->value;
             else
-                return std::make_shared<obj::Error>("array_complex: cannot convert argument");
+                return std::make_shared<obj::Error>("array_complex: cannot convert argument", obj::ErrorType::TypeError);
         }
         return std::make_shared<obj::ArrayComplex>(values);
     }
@@ -629,7 +632,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() > 2)
-            return std::make_shared<obj::Error>("complex: expected less than 3 arguments");
+            return std::make_shared<obj::Error>("complex: expected less than 3 arguments", obj::ErrorType::TypeError);
 
         if (arguments->size() == 0)
         {
@@ -641,20 +644,20 @@ namespace builtin
             auto evalExpr = evalExpression(arguments->front().get(), environment);
             if (evalExpr->type == obj::ObjectType::Double)
                 return std::make_shared<obj::Complex>(std::complex<double>({static_cast<obj::Double *>(evalExpr.get())->value}));
-            return std::make_shared<obj::Error>("complex: first argument needs to be a double");
+            return std::make_shared<obj::Error>("complex: first argument needs to be a double", obj::ErrorType::TypeError);
         }
         else if (arguments->size() == 2)
         {
             auto evalExpr1 = evalExpression(arguments->front().get(), environment);
             if (evalExpr1->type != obj::ObjectType::Double)
-                return std::make_shared<obj::Error>("complex: first argument needs to be a double");
+                return std::make_shared<obj::Error>("complex: first argument needs to be a double", obj::ErrorType::TypeError);
             auto evalExpr2 = evalExpression(arguments->back().get(), environment);
             if (evalExpr2->type != obj::ObjectType::Double)
-                return std::make_shared<obj::Error>("complex: second argument needs to be a double");
+                return std::make_shared<obj::Error>("complex: second argument needs to be a double", obj::ErrorType::TypeError);
 
             return std::make_shared<obj::Complex>(obj::Complex({static_cast<obj::Double *>(evalExpr1.get())->value, static_cast<obj::Double *>(evalExpr2.get())->value}));
         }
-        return std::make_shared<obj::Error>("complex: unexpected");
+        return std::make_shared<obj::Error>("complex: unexpected", obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> dict(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -663,7 +666,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 0)
-            return std::make_shared<obj::Error>("dict: expected no arguments");
+            return std::make_shared<obj::Error>("dict: expected no arguments", obj::ErrorType::TypeError);
 
         std::unordered_map<std::shared_ptr<obj::Object>, std::shared_ptr<obj::Object>, obj::Hash, obj::Equal> value;
         return std::make_shared<obj::Dictionary>(obj::Dictionary(value));
@@ -675,7 +678,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 0)
-            return std::make_shared<obj::Error>("set: expected no arguments");
+            return std::make_shared<obj::Error>("set: expected no arguments", obj::ErrorType::TypeError);
 
         std::unordered_set<std::shared_ptr<obj::Object>, obj::Hash, obj::Equal> value;
         return std::make_shared<obj::Set>(obj::Set(value));
@@ -687,7 +690,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1 && arguments->size() != 2 && arguments->size() != 3)
-            return std::make_shared<obj::Error>("range: expected two or three arguments");
+            return std::make_shared<obj::Error>("range: expected two or three arguments", obj::ErrorType::TypeError);
 
         int64_t arg1Value = 0;
         int64_t arg2Value = 0;
@@ -695,14 +698,14 @@ namespace builtin
 
         auto arg1 = evalExpression((*arguments)[0].get(), environment);
         if (arg1->type != obj::ObjectType::Integer)
-            return std::make_shared<obj::Error>("range: first argument needs to be Integer, got " + toString(arg1->type));
+            return std::make_shared<obj::Error>("range: first argument needs to be Integer, got " + toString(arg1->type), obj::ErrorType::TypeError);
         arg2Value = static_cast<obj::Integer *>(arg1.get())->value;
 
         if (arguments->size() > 1)
         {
             auto arg2 = evalExpression((*arguments)[1].get(), environment);
             if (arg2->type != obj::ObjectType::Integer)
-                return std::make_shared<obj::Error>("range: second argument needs to be Integer, got " + toString(arg2->type));
+                return std::make_shared<obj::Error>("range: second argument needs to be Integer, got " + toString(arg2->type), obj::ErrorType::TypeError);
             arg1Value = arg2Value;
             arg2Value = static_cast<obj::Integer *>(arg2.get())->value;
         }
@@ -712,7 +715,7 @@ namespace builtin
         {
             arg3 = evalExpression((*arguments)[2].get(), environment);
             if (arg3->type != obj::ObjectType::Integer)
-                return std::make_shared<obj::Error>("range: third argument needs to be Integer, got " + toString(arg3->type));
+                return std::make_shared<obj::Error>("range: third argument needs to be Integer, got " + toString(arg3->type), obj::ErrorType::TypeError);
             arg3Value = static_cast<obj::Integer *>(arg3.get())->value;
         }
 
@@ -725,7 +728,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("len: expected 1 argument");
+            return std::make_shared<obj::Error>("len: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         switch (evaluatedExpr->type)
@@ -747,7 +750,7 @@ namespace builtin
         case obj::ObjectType::Range:
             return std::make_shared<obj::Integer>(static_cast<obj::Range *>(evaluatedExpr.get())->length());
         };
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for len: " + obj::toString(evaluatedExpr->type)));
+        return std::make_shared<obj::Error>("Invalid type for len: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> to_bool(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -756,7 +759,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("to_bool: expected 1 argument");
+            return std::make_shared<obj::Error>("to_bool: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type == obj::ObjectType::Error)
@@ -776,14 +779,14 @@ namespace builtin
             }
             catch (std::invalid_argument &e)
             {
-                return std::make_shared<obj::Error>(obj::Error(std::string("Invalid cast to_bool, invalid argument: ") + e.what()));
+                return std::make_shared<obj::Error>(std::string("Invalid cast to_bool, invalid argument: ") + e.what(), obj::ErrorType::TypeError);
             }
             catch (std::out_of_range &e)
             {
-                return std::make_shared<obj::Error>(obj::Error(std::string("Invalid cast to_bool, out of range: ") + e.what()));
+                return std::make_shared<obj::Error>(std::string("Invalid cast to_bool, out of range: ") + e.what(), obj::ErrorType::ValueError);
             }
         }
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for to_bool: " + obj::toString(evaluatedExpr->type)));
+        return std::make_shared<obj::Error>("Invalid type for to_bool: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> to_int(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -792,7 +795,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("to_int: expected 1 argument");
+            return std::make_shared<obj::Error>("to_int: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type == obj::ObjectType::Error)
@@ -807,14 +810,14 @@ namespace builtin
             }
             catch (std::invalid_argument &e)
             {
-                return std::make_shared<obj::Error>(obj::Error(std::string("Invalid cast to_int, invalid argument: ") + e.what()));
+                return std::make_shared<obj::Error>(std::string("Invalid cast to_int, invalid argument: ") + e.what(), obj::ErrorType::TypeError);
             }
             catch (std::out_of_range &e)
             {
-                return std::make_shared<obj::Error>(obj::Error(std::string("Invalid cast to_int, out of range: ") + e.what()));
+                return std::make_shared<obj::Error>(std::string("Invalid cast to_int, out of range: ") + e.what(), obj::ErrorType::ValueError);
             }
         }
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for to_int: " + obj::toString(evaluatedExpr->type)));
+        return std::make_shared<obj::Error>("Invalid type for to_int: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> to_double(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -823,7 +826,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("to_double: expected 1 argument");
+            return std::make_shared<obj::Error>("to_double: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type == obj::ObjectType::Error)
@@ -842,11 +845,11 @@ namespace builtin
                 }
                 catch (std::invalid_argument &e)
                 {
-                    return std::make_shared<obj::Error>(obj::Error(std::string("Invalid cast to_double, invalid argument: ") + e.what()));
+                    return std::make_shared<obj::Error>(std::string("Invalid cast to_double, invalid argument: ") + e.what(), obj::ErrorType::TypeError);
                 }
                 catch (std::out_of_range &e)
                 {
-                    return std::make_shared<obj::Error>(obj::Error(std::string("Invalid cast to_double, out of range: ") + e.what()));
+                    return std::make_shared<obj::Error>(std::string("Invalid cast to_double, out of range: ") + e.what(), obj::ErrorType::ValueError);
                 }
             }
         }
@@ -855,27 +858,27 @@ namespace builtin
             return std::make_shared<obj::Double>(static_cast<double>(static_cast<obj::Integer *>(evaluatedExpr.get())->value));
         }
         };
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for to_double: " + obj::toString(evaluatedExpr->type)));
+        return std::make_shared<obj::Error>("Invalid type for to_double: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> updateArray(std::shared_ptr<obj::Object> obj, const std::vector<ast::Expression *> &arguments, const std::shared_ptr<obj::Environment> &environment)
     {
         auto arrayObj = dynamic_cast<obj::Array *>(obj.get());
         if (!arrayObj)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for array update: " + obj::toString(obj->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for array update: " + obj::toString(obj->type), obj::ErrorType::TypeError);
 
         auto indexExpr = std::move(evalExpression(arguments.at(1), environment));
         if (indexExpr->type == obj::ObjectType::Error)
             return indexExpr;
 
         if (indexExpr->type != obj::ObjectType::Integer)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for update: " + obj::toString(indexExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for update: " + obj::toString(indexExpr->type), obj::ErrorType::TypeError);
 
         auto intObj = static_cast<obj::Integer *>(indexExpr.get());
         size_t arraySize = static_cast<int>(arrayObj->value.size());
         size_t finalIndex = normalizedArrayIndex(intObj->value, arraySize);
         if (finalIndex >= arraySize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intObj->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize)));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intObj->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError);
 
         auto validObj = std::move(evalExpression(arguments.at(2), environment));
         if (validObj->type == obj::ObjectType::Error)
@@ -892,20 +895,20 @@ namespace builtin
     {
         auto arrayObj = dynamic_cast<obj::ArrayDouble *>(obj.get());
         if (!arrayObj)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for array update: " + obj::toString(obj->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for array update: " + obj::toString(obj->type), obj::ErrorType::TypeError);
 
         auto indexExpr = std::move(evalExpression(arguments.at(1), environment));
         if (indexExpr->type == obj::ObjectType::Error)
             return indexExpr;
 
         if (indexExpr->type != obj::ObjectType::Integer)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for update: " + obj::toString(indexExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for update: " + obj::toString(indexExpr->type), obj::ErrorType::TypeError);
 
         auto intObj = static_cast<obj::Integer *>(indexExpr.get());
         size_t arraySize = static_cast<int>(arrayObj->value.size());
         size_t finalIndex = normalizedArrayIndex(intObj->value, arraySize);
         if (finalIndex >= arraySize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intObj->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize)));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intObj->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError);
 
         auto validObj = std::move(evalExpression(arguments.at(2), environment));
         if (validObj->type == obj::ObjectType::Error)
@@ -913,7 +916,7 @@ namespace builtin
 
         if (validObj->type != obj::ObjectType::Double)
         {
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for update [double]: " + obj::toString(validObj->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for update [double]: " + obj::toString(validObj->type), obj::ErrorType::ValueError);
         }
 
         arrayObj->value[finalIndex] = static_cast<obj::Double *>(validObj.get())->value;
@@ -924,20 +927,20 @@ namespace builtin
     {
         auto arrayObj = dynamic_cast<obj::ArrayComplex *>(obj.get());
         if (!arrayObj)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for array update: " + obj::toString(obj->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for array update: " + obj::toString(obj->type), obj::ErrorType::TypeError);
 
         auto indexExpr = std::move(evalExpression(arguments.at(1), environment));
         if (indexExpr->type == obj::ObjectType::Error)
             return indexExpr;
 
         if (indexExpr->type != obj::ObjectType::Integer)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for update: " + obj::toString(indexExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for update: " + obj::toString(indexExpr->type), obj::ErrorType::TypeError);
 
         auto intObj = static_cast<obj::Integer *>(indexExpr.get());
         size_t arraySize = static_cast<int>(arrayObj->value.size());
         size_t finalIndex = normalizedArrayIndex(intObj->value, arraySize);
         if (finalIndex >= arraySize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intObj->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize)));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intObj->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError);
 
         auto validObj = std::move(evalExpression(arguments.at(2), environment));
         if (validObj->type == obj::ObjectType::Error)
@@ -946,7 +949,7 @@ namespace builtin
         // check if we can keep the ArrayComplex or need to demote to Array
         if (validObj->type != obj::ObjectType::Complex)
         {
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for update [complex]: " + obj::toString(validObj->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for update [complex]: " + obj::toString(validObj->type), obj::ErrorType::TypeError);
         }
 
         arrayObj->value[finalIndex] = static_cast<obj::Complex *>(validObj.get())->value;
@@ -957,20 +960,20 @@ namespace builtin
     {
         auto stringObj = dynamic_cast<obj::String *>(obj.get());
         if (!stringObj)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for string update: " + obj::toString(obj->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for string update: " + obj::toString(obj->type), obj::ErrorType::TypeError);
 
         auto indexExpr = std::move(evalExpression(arguments.at(1), environment));
         if (indexExpr->type == obj::ObjectType::Error)
             return indexExpr;
 
         if (indexExpr->type != obj::ObjectType::Integer)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for update: " + obj::toString(indexExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for update: " + obj::toString(indexExpr->type), obj::ErrorType::TypeError);
 
         auto intObj = static_cast<obj::Integer *>(indexExpr.get());
         size_t stringSize = static_cast<int>(stringObj->value.size());
         size_t finalIndex = normalizedArrayIndex(intObj->value, stringSize);
         if (finalIndex >= stringSize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intObj->value) + ", string size=" + std::to_string(stringSize)));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intObj->value) + ", string size=" + std::to_string(stringSize), obj::ErrorType::IndexError);
 
         auto validObj = std::move(evalExpression(arguments.at(2), environment));
         if (validObj->type == obj::ObjectType::Error)
@@ -978,7 +981,7 @@ namespace builtin
 
         auto stringRhs = dynamic_cast<obj::String *>(validObj.get());
         if (!stringRhs)
-            return std::make_shared<obj::Error>(obj::Error("Invalid right hand side for string update: " + obj::toString(stringRhs->type)));
+            return std::make_shared<obj::Error>("Invalid right hand side for string update: " + obj::toString(stringRhs->type), obj::ErrorType::TypeError);
 
         if (stringRhs->value.empty())
             return obj;
@@ -994,7 +997,7 @@ namespace builtin
     {
         auto dictObj = dynamic_cast<obj::Dictionary *>(obj.get());
         if (!dictObj)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument 1 for dictionary update: " + obj::toString(obj->type)));
+            return std::make_shared<obj::Error>("Invalid argument 1 for dictionary update: " + obj::toString(obj->type), obj::ErrorType::TypeError);
 
         auto indexExpr = evalExpression(arguments.at(1), environment);
         if (indexExpr->type == obj::ObjectType::Error)
@@ -1014,7 +1017,7 @@ namespace builtin
     std::shared_ptr<obj::Object> updateImpl(const std::vector<ast::Expression *> &arguments, const std::shared_ptr<obj::Environment> &environment)
     {
         if (arguments.size() != 3)
-            return std::make_shared<obj::Error>("update: expected 3 arguments");
+            return std::make_shared<obj::Error>("update: expected 3 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments.front(), environment);
         switch (evaluatedExpr->type)
@@ -1032,7 +1035,7 @@ namespace builtin
         case obj::ObjectType::String:
             return updateString(evaluatedExpr, arguments, environment);
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid type for update: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid type for update: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         }
     }
 
@@ -1042,7 +1045,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 3)
-            return std::make_shared<obj::Error>("update: expected 3 arguments");
+            return std::make_shared<obj::Error>("update: expected 3 arguments", obj::ErrorType::TypeError);
 
         std::vector<ast::Expression *> args;
         for (const auto &arg : *arguments)
@@ -1057,7 +1060,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 2)
-            return std::make_shared<obj::Error>("append: expected 2 arguments");
+            return std::make_shared<obj::Error>("append: expected 2 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto errorObj = dynamic_cast<obj::Error *>(evaluatedExpr.get());
@@ -1076,7 +1079,7 @@ namespace builtin
             return array_push_back(evaluatedExpr, {evaluatedExprSecond});
         }
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for first argument for append: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument for first argument for append: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         }
     }
 
@@ -1086,7 +1089,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 3)
-            return std::make_shared<obj::Error>("slice: expected 3 arguments");
+            return std::make_shared<obj::Error>("slice: expected 3 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
 
@@ -1099,7 +1102,7 @@ namespace builtin
         case obj::ObjectType::ArrayComplex:
             break;
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for first argument for slice: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument for first argument for slice: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         };
         auto evaluatedExprSecond = evalExpression(arguments->at(1).get(), environment);
         auto errorObjSecond = dynamic_cast<obj::Error *>(evaluatedExprSecond.get());
@@ -1107,7 +1110,7 @@ namespace builtin
             return evaluatedExprSecond;
         auto startIndex = dynamic_cast<obj::Integer *>(evaluatedExprSecond.get());
         if (!startIndex)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for second argument for slice: " + obj::toString(evaluatedExpr->type) + ", expected integer"));
+            return std::make_shared<obj::Error>("Invalid argument for second argument for slice: " + obj::toString(evaluatedExpr->type) + ", expected integer", obj::ErrorType::TypeError);
 
         auto evaluatedExprThird = evalExpression(arguments->at(2).get(), environment);
         auto errorObjThird = dynamic_cast<obj::Error *>(evaluatedExprThird.get());
@@ -1115,16 +1118,16 @@ namespace builtin
             return evaluatedExprThird;
         auto stopIndex = dynamic_cast<obj::Integer *>(evaluatedExprThird.get());
         if (!stopIndex)
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for third argument for slice: " + obj::toString(evaluatedExpr->type) + ", expected integer"));
+            return std::make_shared<obj::Error>("Invalid argument for third argument for slice: " + obj::toString(evaluatedExpr->type) + ", expected integer", obj::ErrorType::TypeError);
 
         const size_t arrayLength = arrayLikeLength(evaluatedExpr.get());
         const size_t startValue = normalizedArrayIndex(startIndex->value, arrayLength);
         const size_t stopValue = std::max(startValue, normalizedArrayIndex(stopIndex->value, arrayLength));
 
         if (startValue >= arrayLength)
-            return std::make_shared<obj::Error>(obj::Error("Slicing error, start index=" + std::to_string(startValue) + ", array size=" + std::to_string(arrayLength), arguments->at(1)->token));
+            return std::make_shared<obj::Error>("Slicing error, start index=" + std::to_string(startValue) + ", array size=" + std::to_string(arrayLength), obj::ErrorType::IndexError, arguments->at(1)->token);
         if (stopValue > arrayLength)
-            return std::make_shared<obj::Error>(obj::Error("Slicing error, stop index=" + std::to_string(stopValue) + ", array size=" + std::to_string(arrayLength), arguments->at(2)->token));
+            return std::make_shared<obj::Error>("Slicing error, stop index=" + std::to_string(stopValue) + ", array size=" + std::to_string(arrayLength), obj::ErrorType::IndexError, arguments->at(2)->token);
 
         switch (evaluatedExpr->type)
         {
@@ -1156,7 +1159,7 @@ namespace builtin
             return std::make_shared<obj::ArrayComplex>(values);
         }
         };
-        return std::make_shared<obj::Error>(obj::Error("Slicing general error"));
+        return std::make_shared<obj::Error>("Slicing general error", obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> rotate(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -1166,7 +1169,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 2)
-            return std::make_shared<obj::Error>("rotate: expected 2 arguments");
+            return std::make_shared<obj::Error>("rotate: expected 2 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type == obj::ObjectType::Error)
@@ -1186,7 +1189,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 2)
-            return std::make_shared<obj::Error>("rotate: expected 2 arguments");
+            return std::make_shared<obj::Error>("rotate: expected 2 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type == obj::ObjectType::Error)
@@ -1206,7 +1209,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("reverse: expected 1 arguments");
+            return std::make_shared<obj::Error>("reverse: expected 1 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         switch (evaluatedExpr->type)
@@ -1224,7 +1227,7 @@ namespace builtin
             return evaluatedExpr;
         }
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for first argument for reversed: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument for first argument for reversed: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         }
     }
 
@@ -1245,7 +1248,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() > 2)
-            return std::make_shared<obj::Error>("sort: expected 1 or 2 arguments");
+            return std::make_shared<obj::Error>("sort: expected 1 or 2 arguments", obj::ErrorType::TypeError);
 
         obj::Function *customComparator = nullptr;
         std::shared_ptr<obj::Object> customComparatorObj;
@@ -1253,7 +1256,7 @@ namespace builtin
         {
             customComparatorObj = evalExpression(arguments->back().get(), environment);
             if (customComparatorObj->type != obj::ObjectType::Function)
-                return std::make_shared<obj::Error>("sort: expected argument 2 to be a function");
+                return std::make_shared<obj::Error>("sort: expected argument 2 to be a function", obj::ErrorType::TypeError);
             customComparator = static_cast<obj::Function *>(customComparatorObj.get());
         }
 
@@ -1349,7 +1352,7 @@ namespace builtin
             return std::make_shared<obj::Boolean>(true);
         }
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for first argument for sort: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument for first argument for sort: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         }
     }
 
@@ -1359,7 +1362,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() > 2)
-            return std::make_shared<obj::Error>("sorted: expected 1 or 2 arguments");
+            return std::make_shared<obj::Error>("sorted: expected 1 or 2 arguments", obj::ErrorType::TypeError);
 
         obj::Function *customComparator = nullptr;
         std::shared_ptr<obj::Object> customComparatorObj;
@@ -1367,7 +1370,7 @@ namespace builtin
         {
             customComparatorObj = evalExpression(arguments->back().get(), environment);
             if (customComparatorObj->type != obj::ObjectType::Function)
-                return std::make_shared<obj::Error>("sort: expected argument 2 to be a function");
+                return std::make_shared<obj::Error>("sort: expected argument 2 to be a function", obj::ErrorType::TypeError);
             customComparator = static_cast<obj::Function *>(customComparatorObj.get());
         }
 
@@ -1427,7 +1430,7 @@ namespace builtin
             return std::make_shared<obj::ArrayDouble>(values);
         }
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for first argument for sort: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument for first argument for sort: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         }
     }
 
@@ -1437,7 +1440,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() > 2)
-            return std::make_shared<obj::Error>("sorted: expected 1 or 2 arguments");
+            return std::make_shared<obj::Error>("sorted: expected 1 or 2 arguments", obj::ErrorType::TypeError);
 
         obj::Function *customComparator = nullptr;
         std::shared_ptr<obj::Object> customComparatorObj;
@@ -1445,7 +1448,7 @@ namespace builtin
         {
             customComparatorObj = evalExpression(arguments->back().get(), environment);
             if (customComparatorObj->type != obj::ObjectType::Function)
-                return std::make_shared<obj::Error>("sort: expected argument 2 to be a function");
+                return std::make_shared<obj::Error>("sort: expected argument 2 to be a function", obj::ErrorType::TypeError);
             customComparator = static_cast<obj::Function *>(customComparatorObj.get());
         }
 
@@ -1531,7 +1534,7 @@ namespace builtin
             return std::make_shared<obj::Boolean>(true);
         }
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for first argument for sort: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument for first argument for sort: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         }
     }
 
@@ -1542,7 +1545,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("reverse: expected 1 arguments");
+            return std::make_shared<obj::Error>("reverse: expected 1 arguments", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         switch (evaluatedExpr->type)
@@ -1561,7 +1564,7 @@ namespace builtin
             return std::make_shared<obj::String>(obj::String(values));
         }
         default:
-            return std::make_shared<obj::Error>(obj::Error("Invalid argument for first argument for reversed: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>("Invalid argument for first argument for reversed: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
         }
     }
 
@@ -1571,7 +1574,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("values: expected 1 argument");
+            return std::make_shared<obj::Error>("values: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto errorObj = dynamic_cast<obj::Error *>(evaluatedExpr.get());
@@ -1587,7 +1590,7 @@ namespace builtin
             return std::make_shared<obj::Array>(obj::Array(values));
         }
 
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for values: " + obj::toString(evaluatedExpr->type)));
+        return std::make_shared<obj::Error>("Invalid type for values: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> keys(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -1596,7 +1599,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("values: expected 1 argument");
+            return std::make_shared<obj::Error>("values: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto errorObj = dynamic_cast<obj::Error *>(evaluatedExpr.get());
@@ -1612,7 +1615,7 @@ namespace builtin
             return std::make_shared<obj::Array>(obj::Array(values));
         }
 
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for keys: " + obj::toString(evaluatedExpr->type)));
+        return std::make_shared<obj::Error>("Invalid type for keys: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError);
     }
 
     std::shared_ptr<obj::Object> iter_impl(const std::shared_ptr<obj::Object> &obj)
@@ -1651,6 +1654,30 @@ namespace builtin
 
 namespace
 {
+    std::unordered_map<std::string, std::shared_ptr<obj::Module>> builtinModules;
+
+    void fillBuiltinModules()
+    {
+        // ERROR-TYPE module
+        auto errorTypeBuiltinModule = builtin::makeModuleErrorType();
+        builtinModules.insert_or_assign("error_type", std::move(errorTypeBuiltinModule));
+
+        // MATH module
+        auto mathBuiltinModule = builtin::createMathModule();
+        builtinModules.insert_or_assign("math", std::move(mathBuiltinModule));
+
+        // OS module
+        auto osBuiltinModule = builtin::makeModuleOS();
+        builtinModules.insert_or_assign("os", std::move(osBuiltinModule));
+
+        // OS module
+        auto regexBuiltinModule = builtin::createRegexModule();
+        builtinModules.insert_or_assign("regex", std::move(regexBuiltinModule));
+
+        auto threadingBuiltinModule = builtin::createThreadingModule();
+        builtinModules.insert_or_assign("threading", std::move(threadingBuiltinModule));
+    }
+
     std::unordered_map<obj::ObjectType, std::shared_ptr<obj::BuiltinType>> builtinTypes;
 
     void fillBuiltinTypes()
@@ -1687,9 +1714,6 @@ namespace
 
     void fillBuiltins()
     {
-        auto mathModule = builtin::createMathModule();
-        auto threadingModule = builtin::createThreadingModule();
-
         builtins = std::unordered_map<std::string, std::shared_ptr<obj::Object>>{
             // all objects - debugging of addresses
             {"address", builtin::makeBuiltInFunctionObj(&builtin::address, "all", "int")},
@@ -1774,9 +1798,6 @@ namespace
             {"values", builtin::makeBuiltInFunctionObj(&builtin::values, "{all:all}", "[all]")},
             {"keys", builtin::makeBuiltInFunctionObj(&builtin::keys, "{all:all}", "[all]")},
 
-            // math
-            {"math", mathModule},
-
             // string functions
             {"to_bool", builtin::makeBuiltInFunctionObj(&builtin::to_bool, "str", "bool")},
             {"to_int", builtin::makeBuiltInFunctionObj(&builtin::to_int, "str", "int")},
@@ -1784,10 +1805,12 @@ namespace
 
             // io functions
             {"open", builtin::makeBuiltInFunctionObj(&builtin::open, "str", "io")},
-
-            // threading and concurrency
-            {"threading", threadingModule},
         };
+    }
+
+    void clearBuiltinModules()
+    {
+        builtinModules.clear();
     }
 
     void clearBuiltinTypes()
@@ -1805,10 +1828,12 @@ void initialize()
 {
     fillBuiltins();
     fillBuiltinTypes();
+    fillBuiltinModules();
 }
 
 void finalize()
 {
+    clearBuiltinModules();
     clearBuiltinTypes();
     clearBuiltins();
 
@@ -1853,10 +1878,10 @@ std::shared_ptr<obj::Object> addTokenInCaseOfError(std::shared_ptr<obj::Object> 
 std::shared_ptr<obj::Object> evalArrayIndexExpression(obj::Array *arrayExpr, std::shared_ptr<obj::Object> evaluatedIndex, ast::IndexExpression *indexExpr)
 {
     if (!arrayExpr)
-        return std::make_shared<obj::Error>(obj::Error("NULL array", indexExpr->token));
+        return std::make_shared<obj::Error>("NULL array", obj::ErrorType::TypeError, indexExpr->token);
 
     if (arrayExpr->value.empty())
-        return std::make_shared<obj::Error>(obj::Error("Attempting index in empty array", indexExpr->token));
+        return std::make_shared<obj::Error>("Attempting index in empty array", obj::ErrorType::IndexError, indexExpr->token);
 
     size_t arraySize = static_cast<int>(arrayExpr->value.size());
     switch (evaluatedIndex->type)
@@ -1866,7 +1891,7 @@ std::shared_ptr<obj::Object> evalArrayIndexExpression(obj::Array *arrayExpr, std
         auto intLiteral = static_cast<obj::Integer *>(evaluatedIndex.get());
         size_t finalIndex = normalizedArrayIndex(intLiteral->value, arraySize);
         if (finalIndex >= arraySize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), indexExpr->token));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError, indexExpr->token);
         return arrayExpr->value[finalIndex];
     }
     case obj::ObjectType::Range:
@@ -1878,23 +1903,23 @@ std::shared_ptr<obj::Object> evalArrayIndexExpression(obj::Array *arrayExpr, std
         {
             size_t finalIndex = normalizedArrayIndex(index, arraySize);
             if (finalIndex >= arraySize)
-                return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), indexExpr->token));
+                return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError, indexExpr->token);
             ret.push_back(arrayExpr->value[finalIndex]);
         }
         return std::make_shared<obj::Array>(ret);
     }
     default:
-        return std::make_shared<obj::Error>(obj::Error("Indexing in array must be done with Integer or Range but found " + toString(evaluatedIndex->type), indexExpr->token));
+        return std::make_shared<obj::Error>("Indexing in array must be done with Integer or Range but found " + toString(evaluatedIndex->type), obj::ErrorType::TypeError, indexExpr->token);
     };
 }
 
 std::shared_ptr<obj::Object> evalArrayDoubleIndexExpression(obj::ArrayDouble *arrayExpr, std::shared_ptr<obj::Object> evaluatedIndex, ast::IndexExpression *indexExpr)
 {
     if (!arrayExpr)
-        return std::make_shared<obj::Error>(obj::Error("NULL array", indexExpr->token));
+        return std::make_shared<obj::Error>("NULL array", obj::ErrorType::TypeError, indexExpr->token);
 
     if (arrayExpr->value.empty())
-        return std::make_shared<obj::Error>(obj::Error("Attempting index in empty array", indexExpr->token));
+        return std::make_shared<obj::Error>("Attempting index in empty array", obj::ErrorType::IndexError, indexExpr->token);
 
     size_t arraySize = static_cast<int>(arrayExpr->value.size());
     switch (evaluatedIndex->type)
@@ -1904,7 +1929,7 @@ std::shared_ptr<obj::Object> evalArrayDoubleIndexExpression(obj::ArrayDouble *ar
         auto intLiteral = static_cast<obj::Integer *>(evaluatedIndex.get());
         size_t finalIndex = normalizedArrayIndex(intLiteral->value, arraySize);
         if (finalIndex >= arraySize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), indexExpr->token));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError, indexExpr->token);
         return std::make_shared<obj::Double>(arrayExpr->value[finalIndex]);
     }
     case obj::ObjectType::Range:
@@ -1916,23 +1941,23 @@ std::shared_ptr<obj::Object> evalArrayDoubleIndexExpression(obj::ArrayDouble *ar
         {
             size_t finalIndex = normalizedArrayIndex(index, arraySize);
             if (finalIndex >= arraySize)
-                return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), indexExpr->token));
+                return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError, indexExpr->token);
             ret.push_back(arrayExpr->value[finalIndex]);
         }
         return std::make_shared<obj::ArrayDouble>(ret);
     }
     default:
-        return std::make_shared<obj::Error>(obj::Error("Indexing in array must be done with Integer or Range but found " + toString(evaluatedIndex->type), indexExpr->token));
+        return std::make_shared<obj::Error>("Indexing in array must be done with Integer or Range but found " + toString(evaluatedIndex->type), obj::ErrorType::TypeError, indexExpr->token);
     };
 }
 
 std::shared_ptr<obj::Object> evalArrayComplexIndexExpression(obj::ArrayComplex *arrayExpr, std::shared_ptr<obj::Object> evaluatedIndex, ast::IndexExpression *indexExpr)
 {
     if (!arrayExpr)
-        return std::make_shared<obj::Error>(obj::Error("NULL array", indexExpr->token));
+        return std::make_shared<obj::Error>("NULL array", obj::ErrorType::TypeError, indexExpr->token);
 
     if (arrayExpr->value.empty())
-        return std::make_shared<obj::Error>(obj::Error("Attempting index in empty array", indexExpr->token));
+        return std::make_shared<obj::Error>("Attempting index in empty array", obj::ErrorType::IndexError, indexExpr->token);
 
     size_t arraySize = static_cast<int>(arrayExpr->value.size());
     switch (evaluatedIndex->type)
@@ -1942,7 +1967,7 @@ std::shared_ptr<obj::Object> evalArrayComplexIndexExpression(obj::ArrayComplex *
         auto intLiteral = static_cast<obj::Integer *>(evaluatedIndex.get());
         size_t finalIndex = normalizedArrayIndex(intLiteral->value, arraySize);
         if (finalIndex >= arraySize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), indexExpr->token));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError, indexExpr->token);
         return std::make_shared<obj::Complex>(arrayExpr->value[finalIndex]);
     }
     case obj::ObjectType::Range:
@@ -1954,20 +1979,20 @@ std::shared_ptr<obj::Object> evalArrayComplexIndexExpression(obj::ArrayComplex *
         {
             size_t finalIndex = normalizedArrayIndex(index, arraySize);
             if (finalIndex >= arraySize)
-                return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), indexExpr->token));
+                return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", array size=" + std::to_string(arraySize), obj::ErrorType::IndexError, indexExpr->token);
             ret.push_back(arrayExpr->value[finalIndex]);
         }
         return std::make_shared<obj::ArrayComplex>(ret);
     }
     default:
-        return std::make_shared<obj::Error>(obj::Error("Indexing in array must be done with Integer or Range but found " + toString(evaluatedIndex->type), indexExpr->token));
+        return std::make_shared<obj::Error>("Indexing in array must be done with Integer or Range but found " + toString(evaluatedIndex->type), obj::ErrorType::TypeError, indexExpr->token);
     };
 }
 
 std::shared_ptr<obj::Object> evalStringIndexExpression(obj::String *stringLiteral, std::shared_ptr<obj::Object> evaluatedIndex, ast::IndexExpression *indexExpr)
 {
     if (stringLiteral->value.empty())
-        return std::make_shared<obj::Error>(obj::Error("Attempting index in empty string", indexExpr->token));
+        return std::make_shared<obj::Error>("Attempting index in empty string", obj::ErrorType::TypeError, indexExpr->token);
 
     size_t stringSize = static_cast<int>(stringLiteral->value.size());
     switch (evaluatedIndex->type)
@@ -1977,7 +2002,7 @@ std::shared_ptr<obj::Object> evalStringIndexExpression(obj::String *stringLitera
         auto intLiteral = static_cast<obj::Integer *>(evaluatedIndex.get());
         size_t finalIndex = normalizedArrayIndex(intLiteral->value, stringSize);
         if (finalIndex >= stringSize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", string size=" + std::to_string(stringSize), indexExpr->token));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", string size=" + std::to_string(stringSize), obj::ErrorType::IndexError, indexExpr->token);
         return std::make_shared<obj::String>(std::string({stringLiteral->value[finalIndex]}));
     }
     case obj::ObjectType::Range:
@@ -1989,20 +2014,20 @@ std::shared_ptr<obj::Object> evalStringIndexExpression(obj::String *stringLitera
         {
             size_t finalIndex = normalizedArrayIndex(index, stringSize);
             if (finalIndex >= stringSize)
-                return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", string size=" + std::to_string(stringSize), indexExpr->token));
+                return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", string size=" + std::to_string(stringSize), obj::ErrorType::IndexError, indexExpr->token);
             ret += stringLiteral->value[finalIndex];
         }
         return std::make_shared<obj::String>(ret);
     }
     default:
-        return std::make_shared<obj::Error>(obj::Error("Indexing in string must be done with Integer or Range but found " + toString(evaluatedIndex->type), indexExpr->token));
+        return std::make_shared<obj::Error>("Indexing in string must be done with Integer or Range but found " + toString(evaluatedIndex->type), obj::ErrorType::TypeError, indexExpr->token);
     };
 }
 
 std::shared_ptr<obj::Object> evalRangeIndexExpression(obj::Range *rangeLiteral, std::shared_ptr<obj::Object> evaluatedIndex, ast::IndexExpression *indexExpr)
 {
     if (rangeLiteral->length() == 0)
-        return std::make_shared<obj::Error>(obj::Error("Attempting index in empty range", indexExpr->token));
+        return std::make_shared<obj::Error>("Attempting index in empty range", obj::ErrorType::TypeError, indexExpr->token);
 
     size_t rangeSize = static_cast<int>(rangeLiteral->length());
     switch (evaluatedIndex->type)
@@ -2012,7 +2037,7 @@ std::shared_ptr<obj::Object> evalRangeIndexExpression(obj::Range *rangeLiteral, 
         auto intLiteral = static_cast<obj::Integer *>(evaluatedIndex.get());
         size_t finalIndex = normalizedArrayIndex(intLiteral->value, rangeSize);
         if (finalIndex >= rangeSize)
-            return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", range size=" + std::to_string(rangeSize), indexExpr->token));
+            return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(intLiteral->value) + " transformed to " + std::to_string(finalIndex) + ", range size=" + std::to_string(rangeSize), obj::ErrorType::IndexError, indexExpr->token);
         return std::make_shared<obj::Integer>(rangeLiteral->values()[finalIndex]);
     }
     case obj::ObjectType::Range:
@@ -2024,24 +2049,24 @@ std::shared_ptr<obj::Object> evalRangeIndexExpression(obj::Range *rangeLiteral, 
         {
             size_t finalIndex = normalizedArrayIndex(index, rangeSize);
             if (finalIndex >= rangeSize)
-                return std::make_shared<obj::Error>(obj::Error("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", range size=" + std::to_string(rangeSize), indexExpr->token));
+                return std::make_shared<obj::Error>("Indexing error, index=" + std::to_string(index) + " transformed to " + std::to_string(finalIndex) + ", range size=" + std::to_string(rangeSize), obj::ErrorType::IndexError, indexExpr->token);
             ret.push_back(std::make_shared<obj::Integer>(rangeLiteral->values()[finalIndex]));
         }
         return std::make_shared<obj::Array>(ret);
     }
     default:
-        return std::make_shared<obj::Error>(obj::Error("Indexing in range must be done with Integer or Range but found " + toString(evaluatedIndex->type), indexExpr->token));
+        return std::make_shared<obj::Error>("Indexing in range must be done with Integer or Range but found " + toString(evaluatedIndex->type), obj::ErrorType::IndexError, indexExpr->token);
     };
 }
 
 std::shared_ptr<obj::Object> evalDictionaryIndexExpression(obj::Dictionary *dictExpr, std::shared_ptr<obj::Object> evaluatedIndex, ast::IndexExpression *indexExpr)
 {
     if (dictExpr->value.empty())
-        return std::make_shared<obj::Error>(obj::Error("Attempting index in empty dictionary", indexExpr->token));
+        return std::make_shared<obj::Error>("Attempting index in empty dictionary", obj::ErrorType::KeyError, indexExpr->token);
 
     auto foundIt = dictExpr->value.find(evaluatedIndex);
     if (foundIt == dictExpr->value.end())
-        return std::make_shared<obj::Error>(obj::Error("Key " + evaluatedIndex->inspect() + " not found"));
+        return std::make_shared<obj::Error>("Key " + evaluatedIndex->inspect() + " not found", obj::ErrorType::KeyError, indexExpr->token);
     return foundIt->second;
 }
 
@@ -2070,7 +2095,7 @@ std::shared_ptr<obj::Object> evalIndexExpression(ast::IndexExpression *indexExpr
     case obj::ObjectType::Range:
         return evalRangeIndexExpression(static_cast<obj::Range *>(evaluatedExpr.get()), evaluatedIndex, indexExpr);
     default:
-        return std::make_shared<obj::Error>(obj::Error("Was expecting array, dictionary or string but found " + toString(evaluatedExpr->type), indexExpr->token));
+        return std::make_shared<obj::Error>("Was expecting array, dictionary or string but found " + toString(evaluatedExpr->type), obj::ErrorType::TypeError, indexExpr->token);
     };
 }
 
@@ -2121,7 +2146,7 @@ std::shared_ptr<obj::Object> evalMemberExpression(ast::MemberExpression *memberE
         {
             return std::make_shared<obj::BoundUserTypeProperty>(expr, &propertyIt->second);
         }
-        return std::make_shared<obj::Error>(obj::Error("Cannot resolve object member " + memberExpression->value.value, memberExpression->token));
+        return std::make_shared<obj::Error>("Cannot resolve object member " + memberExpression->value.value, obj::ErrorType::TypeError, memberExpression->token);
     }
     else if (exprType == obj::ObjectType::UserType)
     {
@@ -2137,14 +2162,14 @@ std::shared_ptr<obj::Object> evalMemberExpression(ast::MemberExpression *memberE
         {
             return std::make_shared<obj::BoundUserTypeProperty>(expr, &propertyIt->second);
         }
-        return std::make_shared<obj::Error>(obj::Error("Cannot resolve type member " + memberExpression->value.value, memberExpression->token));
+        return std::make_shared<obj::Error>("Cannot resolve type member " + memberExpression->value.value, obj::ErrorType::TypeError, memberExpression->token);
     }
     else if (exprType == obj::ObjectType::Module)
     {
         auto moduleObj = static_cast<obj::Module *>(expr.get());
         return moduleObj->environment->get(memberExpression->value.value);
     }
-    return std::make_shared<obj::Error>(obj::Error("Cannot evaluate member expression of type " + obj::toString(exprType), memberExpression->token));
+    return std::make_shared<obj::Error>("Cannot evaluate member expression of type " + obj::toString(exprType), obj::ErrorType::TypeError, memberExpression->token);
 }
 
 std::shared_ptr<obj::Object> evalModuleMemberExpression(ast::ModuleMemberExpression *moduleMemberExpression, const std::shared_ptr<obj::Environment> &environment)
@@ -2159,13 +2184,13 @@ std::shared_ptr<obj::Object> evalModuleMemberExpression(ast::ModuleMemberExpress
         auto moduleObj = static_cast<obj::Module *>(expr.get());
         return moduleObj->environment->get(moduleMemberExpression->value.value);
     }
-    return std::make_shared<obj::Error>(obj::Error("Cannot evaluate module member expression of type " + obj::toString(exprType), moduleMemberExpression->token));
+    return std::make_shared<obj::Error>("Cannot evaluate module member expression of type " + obj::toString(exprType), obj::ErrorType::TypeError, moduleMemberExpression->token);
 }
 
 std::shared_ptr<obj::Object> evalBangOperator(obj::Object *object)
 {
     if (!object)
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for ! NULL"));
+        return std::make_shared<obj::Error>("Invalid type for ! NULL", obj::ErrorType::TypeError);
 
     switch (object->type)
     {
@@ -2181,7 +2206,7 @@ std::shared_ptr<obj::Object> evalBangOperator(obj::Object *object)
 std::shared_ptr<obj::Object> evalMinusPrefixOperator(obj::Object *object)
 {
     if (!object)
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for - NULL"));
+        return std::make_shared<obj::Error>("Invalid type for - NULL", obj::ErrorType::TypeError);
 
     switch (object->type)
     {
@@ -2191,7 +2216,7 @@ std::shared_ptr<obj::Object> evalMinusPrefixOperator(obj::Object *object)
         return std::make_shared<obj::Double>(-static_cast<obj::Double *>(object)->value);
     };
 
-    return std::make_shared<obj::Error>(obj::Error("Invalid type for - " + obj::toString(object->type)));
+    return std::make_shared<obj::Error>("Invalid type for - " + obj::toString(object->type), obj::ErrorType::TypeError);
 }
 
 std::shared_ptr<obj::Object> evalNullPrefixOperator(TokenType operator_t, const std::shared_ptr<obj::Object> &object)
@@ -2199,7 +2224,7 @@ std::shared_ptr<obj::Object> evalNullPrefixOperator(TokenType operator_t, const 
     if (operator_t == TokenType::BANG)
         return std::make_shared<obj::Boolean>(true);
 
-    return std::make_shared<obj::Error>(obj::Error("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type)));
+    return std::make_shared<obj::Error>("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type), obj::ErrorType::TypeError);
 }
 
 std::shared_ptr<obj::Object> evalIntegerPrefixOperator(TokenType operator_t, const std::shared_ptr<obj::Object> &object)
@@ -2210,7 +2235,7 @@ std::shared_ptr<obj::Object> evalIntegerPrefixOperator(TokenType operator_t, con
     if (operator_t == TokenType::MINUS)
         return std::make_shared<obj::Integer>(obj::Integer(-intObj->value));
 
-    return std::make_shared<obj::Error>(obj::Error("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type)));
+    return std::make_shared<obj::Error>("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type), obj::ErrorType::TypeError);
 }
 
 std::shared_ptr<obj::Object> evalDoublePrefixOperator(TokenType operator_t, const std::shared_ptr<obj::Object> &object)
@@ -2219,7 +2244,7 @@ std::shared_ptr<obj::Object> evalDoublePrefixOperator(TokenType operator_t, cons
     if (operator_t == TokenType::MINUS)
         return std::make_shared<obj::Double>(-doubleObj->value);
 
-    return std::make_shared<obj::Error>(obj::Error("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type)));
+    return std::make_shared<obj::Error>("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type), obj::ErrorType::TypeError);
 }
 
 std::shared_ptr<obj::Object> evalBooleanPrefixOperator(TokenType operator_t, const std::shared_ptr<obj::Object> &object)
@@ -2228,7 +2253,7 @@ std::shared_ptr<obj::Object> evalBooleanPrefixOperator(TokenType operator_t, con
     if (operator_t == TokenType::BANG)
         return std::make_shared<obj::Boolean>(!booleanObj->value);
 
-    return std::make_shared<obj::Error>(obj::Error("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type)));
+    return std::make_shared<obj::Error>("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type), obj::ErrorType::TypeError);
 }
 
 std::shared_ptr<obj::Object> evalPrefixExpression(TokenType operator_t, const std::shared_ptr<obj::Object> &object)
@@ -2245,7 +2270,7 @@ std::shared_ptr<obj::Object> evalPrefixExpression(TokenType operator_t, const st
         return evalNullPrefixOperator(operator_t, object);
     };
 
-    return std::make_shared<obj::Error>(obj::Error("unknown prefix operator " + toString(operator_t) + " for " + obj::toString(object->type)));
+    return std::make_shared<obj::Error>("unknown prefix operator " + toString(operator_t) + " for " + obj::toString(object->type), obj::ErrorType::TypeError);
 }
 
 obj::Object *evalIntegerInfixOperator(TokenType operator_t, obj::Integer *left, obj::Integer *right)
@@ -2278,7 +2303,7 @@ obj::Object *evalIntegerInfixOperator(TokenType operator_t, obj::Integer *left, 
         return new obj::Boolean(left->value == right->value);
     }
 
-    return new obj::Error("unknown operator " + toString(operator_t) + " for Integer");
+    return new obj::Error("unknown operator " + toString(operator_t) + " for Integer", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalDoubleInfixOperator(TokenType operator_t, obj::Double *left, obj::Double *right)
@@ -2307,7 +2332,7 @@ obj::Object *evalDoubleInfixOperator(TokenType operator_t, obj::Double *left, ob
         return new obj::Boolean(left->value == right->value);
     }
 
-    return new obj::Error("unknown operator " + toString(operator_t) + " for Double");
+    return new obj::Error("unknown operator " + toString(operator_t) + " for Double", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalComplexInfixOperator(TokenType operator_t, obj::Complex *left, obj::Complex *right)
@@ -2328,7 +2353,7 @@ obj::Object *evalComplexInfixOperator(TokenType operator_t, obj::Complex *left, 
         return new obj::Boolean(left->value == right->value);
     }
 
-    return new obj::Error("unknown operator " + toString(operator_t) + " for Double");
+    return new obj::Error("unknown operator " + toString(operator_t) + " for Double", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalStringInfixOperator(TokenType operator_t, obj::String *left, obj::String *right)
@@ -2346,7 +2371,7 @@ obj::Object *evalStringInfixOperator(TokenType operator_t, obj::String *left, ob
     if (operator_t == TokenType::GTEQ)
         return new obj::Boolean(left->value >= right->value);
 
-    return new obj::Error("unknown operator " + toString(operator_t) + " for String");
+    return new obj::Error("unknown operator " + toString(operator_t) + " for String", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalBoolInfixOperator(TokenType operator_t, obj::Boolean *left, obj::Boolean *right)
@@ -2360,7 +2385,7 @@ obj::Object *evalBoolInfixOperator(TokenType operator_t, obj::Boolean *left, obj
     if (operator_t == TokenType::DOUBLEAMPERSAND)
         return new obj::Boolean(left->value && right->value);
 
-    return new obj::Error("unknown operator " + toString(operator_t) + " for Boolean");
+    return new obj::Error("unknown operator " + toString(operator_t) + " for Boolean", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalNullInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
@@ -2373,7 +2398,7 @@ obj::Object *evalNullInfixOperator(TokenType operator_t, obj::Object *left, obj:
     if (operator_t == TokenType::N_EQ)
         return new obj::Boolean((isLeftNull || isRightNull) && (isLeftNull != isRightNull));
 
-    return new obj::Error("Cannot use operator " + toString(operator_t) + " on NULL types");
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on NULL types", obj::ErrorType::TypeError);
 }
 
 bool dictEq(const obj::Dictionary *left, const obj::Dictionary *right)
@@ -2514,7 +2539,7 @@ obj::Object *evalAnyArrayInfixOperator(TokenType operator_t, obj::Object *left, 
     if (operator_t == TokenType::N_EQ)
         return new obj::Boolean(!arrayLikeEq(left, right));
 
-    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types");
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalArrayInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
@@ -2527,7 +2552,7 @@ obj::Object *evalArrayInfixOperator(TokenType operator_t, obj::Object *left, obj
     if (operator_t == TokenType::N_EQ)
         return new obj::Boolean(!arrayEq(leftArr, rightArr));
 
-    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types");
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalArrayDoubleInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
@@ -2540,7 +2565,7 @@ obj::Object *evalArrayDoubleInfixOperator(TokenType operator_t, obj::Object *lef
     if (operator_t == TokenType::N_EQ)
         return new obj::Boolean(!arrayEq(leftArr, rightArr));
 
-    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types");
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalArrayComplexInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
@@ -2553,7 +2578,7 @@ obj::Object *evalArrayComplexInfixOperator(TokenType operator_t, obj::Object *le
     if (operator_t == TokenType::N_EQ)
         return new obj::Boolean(!arrayEq(leftArr, rightArr));
 
-    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types");
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Array types", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalDictionaryInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
@@ -2566,7 +2591,7 @@ obj::Object *evalDictionaryInfixOperator(TokenType operator_t, obj::Object *left
     if (operator_t == TokenType::N_EQ)
         return new obj::Boolean(!dictEq(leftDict, rightDict));
 
-    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Dictionary types");
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Dictionary types", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalSetInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
@@ -2579,7 +2604,7 @@ obj::Object *evalSetInfixOperator(TokenType operator_t, obj::Object *left, obj::
     if (operator_t == TokenType::N_EQ)
         return new obj::Boolean(!setEq(leftSet, rightSet));
 
-    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Set types");
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Set types", obj::ErrorType::TypeError);
 }
 
 std::shared_ptr<obj::Object> evalAssignmentOperator(ast::Identifier *identifier, const std::shared_ptr<obj::Object> &right, const std::shared_ptr<obj::Environment> &environment)
@@ -2592,7 +2617,7 @@ std::shared_ptr<obj::Object> evalAssignmentOperator(ast::Identifier *identifier,
 
     if (!typing::isCompatibleType(identifierType, right.get(), identifierObj.get()))
     {
-        return std::make_shared<obj::Error>(obj::Error("Incompatible type " + identifierType->text()));
+        return std::make_shared<obj::Error>("Incompatible type " + identifierType->text(), obj::ErrorType::TypeError);
     }
 
     if (isValueAssigned(right))
@@ -2687,7 +2712,7 @@ std::shared_ptr<obj::Object> evalOpAssignmentOperator(ast::Identifier *identifie
 
     bool succeeded = evalOpAssignmentOperatorObject(identifierObj.get(), operator_t, right);
     if (!succeeded)
-        return std::make_shared<obj::Error>("Cannot use operator " + toString(operator_t) + " on type " + obj::toString(identifierObj->type));
+        return std::make_shared<obj::Error>("Cannot use operator " + toString(operator_t) + " on type " + obj::toString(identifierObj->type), obj::ErrorType::TypeError);
 
     return identifierObj;
 }
@@ -2721,10 +2746,10 @@ std::shared_ptr<obj::Object> evalMemberAssignmentExpression(ast::MemberExpressio
     if (property)
     {
         if (property->constant)
-            return std::make_shared<obj::Error>("Cannot update const member " + memberExpr->value.text(), memberExpr->token);
+            return std::make_shared<obj::Error>("Cannot update const member " + memberExpr->value.text(), obj::ErrorType::TypeError, memberExpr->token);
 
         if (!typing::isCompatibleType(property->type, rhv.get(), property->obj.get()))
-            return std::make_shared<obj::Error>(obj::Error("Incompatible type " + property->type->text() + " for " + rhv->inspect()));
+            return std::make_shared<obj::Error>("Incompatible type " + property->type->text() + " for " + rhv->inspect(), obj::ErrorType::TypeError);
 
         if (isValueAssigned(rhv))
             property->obj = rhv->clone();
@@ -2732,7 +2757,7 @@ std::shared_ptr<obj::Object> evalMemberAssignmentExpression(ast::MemberExpressio
             property->obj = rhv;
         return objPropToAssignInto;
     }
-    return std::make_shared<obj::Error>("Cannot update member");
+    return std::make_shared<obj::Error>("Cannot update member", obj::ErrorType::TypeError, memberExpr->token);
 }
 
 std::shared_ptr<obj::Object> evalIndexOpAssignmentExpression(ast::IndexExpression *indexExpr, TokenType operator_t, ast::Expression *rightExpr, const std::shared_ptr<obj::Environment> &environment)
@@ -2743,16 +2768,16 @@ std::shared_ptr<obj::Object> evalIndexOpAssignmentExpression(ast::IndexExpressio
     std::shared_ptr<obj::Object> rhv = std::move(evalExpression(rightExpr, environment));
     bool succeeded = evalOpAssignmentOperatorObject(objToAssignInto.get(), operator_t, rhv);
     if (!succeeded)
-        return std::make_shared<obj::Error>("Cannot use operator " + toString(operator_t) + " on type" + obj::toString(objToAssignInto->type));
+        return std::make_shared<obj::Error>("Cannot use operator " + toString(operator_t) + " on type" + obj::toString(objToAssignInto->type), obj::ErrorType::TypeError);
     return objToAssignInto;
 }
 
 obj::Object *evalInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
 {
     if (!left)
-        return new obj::Error(toString(operator_t) + " has no left-hand object");
+        return new obj::Error(toString(operator_t) + " has no left-hand object", obj::ErrorType::TypeError);
     if (!right)
-        return new obj::Error(toString(operator_t) + " has no right-hand object");
+        return new obj::Error(toString(operator_t) + " has no right-hand object", obj::ErrorType::TypeError);
 
     switch (left->type)
     {
@@ -2832,7 +2857,7 @@ obj::Object *evalInfixOperator(TokenType operator_t, obj::Object *left, obj::Obj
     }
     };
 
-    return new obj::Error("Type mismatch for operator " + toString(operator_t) + " for types " + obj::toString(left->type) + " and " + obj::toString(right->type));
+    return new obj::Error("Type mismatch for operator " + toString(operator_t) + " for types " + obj::toString(left->type) + " and " + obj::toString(right->type), obj::ErrorType::TypeError);
 }
 
 bool isTruthy(const std::shared_ptr<obj::Object> &value)
@@ -2925,7 +2950,7 @@ std::shared_ptr<obj::Object> evalForExpression(const ast::ForExpression *forExpr
     std::shared_ptr<obj::Iterator> iter = std::dynamic_pointer_cast<obj::Iterator>(iterator);
 
     if (!iter)
-        return std::make_shared<obj::Error>("Cannot iterate over " + forExpr->iterable->text());
+        return std::make_shared<obj::Error>("Cannot iterate over " + forExpr->iterable->text(), obj::ErrorType::TypeError);
 
     while (iter->isValid())
     {
@@ -2938,7 +2963,7 @@ std::shared_ptr<obj::Object> evalForExpression(const ast::ForExpression *forExpr
         {
             std::string expectedTypeStr = forExpr->iterType->text();
             std::string gottenTypeStr = typing::computeType(iteratorValue.get())->text();
-            return std::make_shared<obj::Error>(obj::Error("Incompatible type for loop variable " + forExpr->name.value + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, forExpr->token));
+            return std::make_shared<obj::Error>("Incompatible type for loop variable " + forExpr->name.value + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError, forExpr->token);
         }
 
         newEnvironment->add(forExpr->name.value, iteratorValue, forExpr->constant, forExpr->iterType.get());
@@ -3030,7 +3055,7 @@ std::shared_ptr<obj::Object> evalDestructor(obj::Function *functionObj, obj::Use
     {
         std::string expectedTypeStr = functionObj->returnType->text();
         std::string gottenTypeStr = typing::computeType(returnValue.get())->text();
-        return std::make_shared<obj::Error>("Incompatible return type in destructor, expected " + expectedTypeStr + " but got " + gottenTypeStr);
+        return std::make_shared<obj::Error>("Incompatible return type in destructor, expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError);
     }
 
     ghostObject.reset();
@@ -3064,11 +3089,11 @@ std::shared_ptr<obj::Object> evalBoundUserTypeFunction(obj::BoundUserTypeFunctio
             {
                 std::string expectedTypeStr = functionObj->argumentTypes[argumentIndex]->text();
                 std::string gottenTypeStr = typing::computeType(evaluatedArgs.back().get())->text();
-                return std::make_shared<obj::Error>(obj::Error("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, callExpr->token));
+                return std::make_shared<obj::Error>("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError, callExpr->token);
             }
 
             if (argumentIndex >= functionObj->arguments.size())
-                return std::make_shared<obj::Error>(obj::Error("Too many arguments provided for function", callExpr->token));
+                return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError, callExpr->token);
 
             functionEnvironment->add(functionObj->arguments[argumentIndex].value, evaluatedArgs.back(), false, functionObj->argumentTypes[argumentIndex]);
             ++argumentIndex;
@@ -3083,7 +3108,7 @@ std::shared_ptr<obj::Object> evalBoundUserTypeFunction(obj::BoundUserTypeFunctio
     {
         std::string expectedTypeStr = functionObj->returnType->text();
         std::string gottenTypeStr = typing::computeType(returnValue.get())->text();
-        return std::make_shared<obj::Error>(obj::Error("Incompatible return type, expected " + expectedTypeStr + " but got " + gottenTypeStr, callExpr->token));
+        return std::make_shared<obj::Error>("Incompatible return type, expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError, callExpr->token);
     }
 
     auto desRetValue = evalUserObjectDestructors(functionEnvironment);
@@ -3106,11 +3131,11 @@ std::shared_ptr<obj::Object> evalFunctionWithArguments(obj::Function *functionOb
         {
             std::string expectedTypeStr = functionObj->argumentTypes[argumentIndex]->text();
             std::string gottenTypeStr = typing::computeType(evaluatedArg.get())->text();
-            return std::make_shared<obj::Error>(obj::Error("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr));
+            return std::make_shared<obj::Error>("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError);
         }
 
         if (argumentIndex >= functionObj->arguments.size())
-            return std::make_shared<obj::Error>(obj::Error("Too many arguments provided for function"));
+            return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError);
 
         functionEnvironment->add(functionObj->arguments[argumentIndex].value, evaluatedArg, false, functionObj->argumentTypes[argumentIndex]);
         ++argumentIndex;
@@ -3154,11 +3179,11 @@ std::shared_ptr<obj::Object> evalCallExpression(ast::CallExpression *callExpr, c
                 if (computedType)
                     gottenTypeStr = computedType->text();
 
-                return std::make_shared<obj::Error>(obj::Error("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, callExpr->token));
+                return std::make_shared<obj::Error>("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError, callExpr->token);
             }
 
             if (argumentIndex >= functionObj->arguments.size())
-                return std::make_shared<obj::Error>(obj::Error("Too many arguments provided for function", callExpr->token));
+                return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError, callExpr->token);
 
             functionEnvironment->add(functionObj->arguments[argumentIndex].value, evaluatedArgs.back(), false, functionObj->argumentTypes[argumentIndex]);
             ++argumentIndex;
@@ -3236,7 +3261,7 @@ std::shared_ptr<obj::Object> evalCallExpression(ast::CallExpression *callExpr, c
     }
     else
     {
-        return std::make_shared<obj::Error>("Function " + callExpr->text() + " not found", callExpr->token);
+        return std::make_shared<obj::Error>("Function " + callExpr->text() + " not found", obj::ErrorType::TypeError, callExpr->token);
     }
 }
 
@@ -3301,7 +3326,7 @@ std::shared_ptr<obj::Object> evalIdentifier(ast::Identifier *identifier, const s
     case ast::MarkedAsBuiltin::False:
         return addTokenInCaseOfError(environment->get(identifier->value), identifier->token);
     }
-    return std::make_shared<obj::Error>("Cannot evaluate identifier", identifier->token);
+    return std::make_shared<obj::Error>("Cannot evaluate identifier", obj::ErrorType::TypeError, identifier->token);
 }
 
 std::vector<std::shared_ptr<obj::Object>> objectsFromArrayLiteral(ast::Expression *expression, const std::shared_ptr<obj::Environment> &environment)
@@ -3383,12 +3408,12 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
                             for (const auto &object : objects)
                             {
                                 if (object->type != obj::ObjectType::Double)
-                                    return std::make_shared<obj::Error>(obj::Error("Trying to make an array of wrong type"));
+                                    return std::make_shared<obj::Error>("Trying to build an array of wrong type", obj::ErrorType::TypeError);
                                 doubleValues.push_back(static_cast<obj::Double *>(object.get())->value);
                             }
                             return std::make_shared<obj::ArrayDouble>(doubleValues);
                         }
-                        return std::make_shared<obj::Error>(obj::Error("Trying to make an array of wrong type"));
+                        return std::make_shared<obj::Error>("Trying to build an array of wrong type", obj::ErrorType::TypeError);
                     }
                     else if (typeIdentifier->value == "complex")
                     {
@@ -3409,12 +3434,12 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
                             for (const auto &object : objects)
                             {
                                 if (object->type != obj::ObjectType::Complex)
-                                    return std::make_shared<obj::Error>(obj::Error("Trying to make an array of wrong type"));
+                                    return std::make_shared<obj::Error>("Trying to make an array of wrong type", obj::ErrorType::TypeError);
                                 doubleValues.push_back(static_cast<obj::Complex *>(object.get())->value);
                             }
                             return std::make_shared<obj::ArrayComplex>(doubleValues);
                         }
-                        return std::make_shared<obj::Error>(obj::Error("Trying to make an array of wrong type"));
+                        return std::make_shared<obj::Error>("Trying to make an array of wrong type", obj::ErrorType::TypeError);
                     }
                     else
                     {
@@ -3422,7 +3447,7 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
                         for (const auto &object : objects)
                         {
                             if (!typing::isCompatibleType(typeArray->elementType.get(), object.get(), nullptr))
-                                return std::make_shared<obj::Error>(obj::Error("Trying to make an array with elements of wrong type"));
+                                return std::make_shared<obj::Error>("Trying to make an array with elements of wrong type", obj::ErrorType::TypeError);
                         }
                         return std::make_shared<obj::Array>(objects);
                     }
@@ -3433,12 +3458,12 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
                     for (const auto &object : objects)
                     {
                         if (!typing::isCompatibleType(typeArray->elementType.get(), object.get(), nullptr))
-                            return std::make_shared<obj::Error>(obj::Error("Trying to make an array with elements of wrong type"));
+                            return std::make_shared<obj::Error>("Trying to make an array with elements of wrong type", obj::ErrorType::TypeError);
                     }
                     return std::make_shared<obj::Array>(objects);
                 }
             }
-            return std::make_shared<obj::Error>(obj::Error("Trying to make an array of wrong type"));
+            return std::make_shared<obj::Error>("Trying to make an array of wrong type", obj::ErrorType::TypeError);
         }
     }
     case ast::NodeType::DictLiteral:
@@ -3450,7 +3475,7 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
             auto elementObj = evalExpression(element.first.get(), environment);
             if (!elementObj->hashAble())
             {
-                return std::make_shared<obj::Error>(obj::Error("Trying to add unhashable item to dict as key " + elementObj->inspect()));
+                return std::make_shared<obj::Error>("Trying to add unhashable item to dict as key " + elementObj->inspect(), obj::ErrorType::TypeError);
             }
             objects.insert(std::make_pair(std::move(elementObj), evalExpression(element.second.get(), environment)));
         }
@@ -3465,7 +3490,7 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
             auto elementObj = evalExpression(element.get(), environment);
             if (!elementObj->hashAble())
             {
-                return std::make_shared<obj::Error>(obj::Error("Trying to add unhashable item to set " + elementObj->inspect()));
+                return std::make_shared<obj::Error>("Trying to add unhashable item to set " + elementObj->inspect(), obj::ErrorType::TypeError);
             }
             objects.insert(std::move(elementObj));
         }
@@ -3507,7 +3532,7 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
                 return evalMemberAssignmentExpression(memberExpr, infixExpr->right.get(), environment);
             }
 
-            return std::make_shared<obj::Error>(obj::Error("Lefthand of assignment needs to be identifier or index expression, found  " + expression->text(), infixExpr->token));
+            return std::make_shared<obj::Error>("Lefthand of assignment needs to be identifier or index expression, found  " + expression->text(), obj::ErrorType::TypeError, infixExpr->token);
         }
 
         if (infixExpr->operator_t.type == TokenType::PLUSASSIGN || infixExpr->operator_t.type == TokenType::MINUSASSIGN || infixExpr->operator_t.type == TokenType::SLASHASSIGN || infixExpr->operator_t.type == TokenType::ASTERISKASSIGN)
@@ -3527,7 +3552,7 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
                 return evalIndexOpAssignmentExpression(indexExpr, infixExpr->operator_t.type, infixExpr->right.get(), environment);
             }
 
-            return std::make_shared<obj::Error>(obj::Error("Lefthand of operator assignment needs to be identifier found  " + expression->text(), infixExpr->token));
+            return std::make_shared<obj::Error>("Lefthand of operator assignment needs to be identifier found  " + expression->text(), obj::ErrorType::TypeError, infixExpr->token);
         }
 
         auto leftVal = unwrapMemberValue(evalExpression(infixExpr->left.get(), environment));
@@ -3561,9 +3586,9 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
     };
 
     if (expression)
-        return std::make_shared<obj::Error>(obj::Error("Cannot evaluate " + expression->text(), expression->token));
+        return std::make_shared<obj::Error>("Cannot evaluate " + expression->text(), obj::ErrorType::TypeError, expression->token);
     else
-        return std::make_shared<obj::Error>(obj::Error("Cannot evaluate NULL"));
+        return std::make_shared<obj::Error>("Cannot evaluate NULL", obj::ErrorType::TypeError);
 }
 
 std::shared_ptr<obj::Object> evalTryExceptStatement(ast::TryExceptStatement *statement, const std::shared_ptr<obj::Environment> &environment)
@@ -3590,7 +3615,7 @@ std::shared_ptr<obj::Object> evalLetStatement(ast::LetStatement *statement, cons
     auto exprValue = evalExpression(statement->value.get(), environment, statement->valueType.get());
     if (!typing::isCompatibleType(statement->valueType.get(), exprValue.get(), nullptr))
     {
-        return std::make_shared<obj::Error>(obj::Error("Incompatible type " + statement->valueType->text() + " for " + statement->value->tokenLiteral(), statement->valueType->token));
+        return std::make_shared<obj::Error>("Incompatible type " + statement->valueType->text() + " for " + statement->value->tokenLiteral(), obj::ErrorType::TypeError, statement->valueType->token);
     }
     // auto retValue = environment->add(statement->name.tokenLiteral(), std::move(exprValue), statement->constant, statement->type.get());
     std::shared_ptr<obj::Object> retValue;
@@ -3636,38 +3661,66 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
     std::vector<std::string> log;
     if (statement && environment)
     {
+        std::shared_ptr<obj::Module> moduleObj;
+        std::string moduleText;
+
         auto modulePath = statement->name.path;
         auto localModuleName = modulePathToModuleName(modulePath);
-        auto fileName = modulePathToModuleFileName(std::filesystem::current_path(), modulePath);
-        if (logModuleActivity)
+        if (builtinModules.find(modulePath.front()) != builtinModules.end())
         {
-            log.push_back("modulePath=" + util::join(modulePath, "::"));
-            log.push_back("localModuleName=" + localModuleName);
-            log.push_back("fileName=" + fileName);
-        }
-        std::string text;
-        std::string line;
-        std::ifstream inputf;
-        inputf.open(fileName);
-        if (inputf.is_open())
-        {
-            while (std::getline(inputf, line))
-                text += line + "\n";
+            if (logModuleActivity)
+                log.push_back("builtin toplevel module=" + modulePath.front());
+
+            // check if the full path exists by walking through the module hierarchy
+            auto modulePathToWalk = modulePath;
+            moduleObj = builtinModules.at(modulePath.front());
+            for (int modIdx = 1; modIdx < static_cast<int>(modulePath.size()); ++modIdx)
+            {
+                if (moduleObj->environment->has(modulePath.at(modIdx)))
+                {
+                    auto obj = moduleObj->environment->get(modulePath.at(modIdx));
+                    if (obj->type != obj::ObjectType::Module)
+                        return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed to import, builtin module not found", obj::ErrorType::ImportError);
+
+                    moduleObj = std::dynamic_pointer_cast<obj::Module>(obj);
+                }
+            }
         }
         else
         {
+            auto fileName = modulePathToModuleFileName(std::filesystem::current_path(), modulePath);
             if (logModuleActivity)
             {
-                log.push_back("fileName not found");
-                std::cerr << util::join(log, "\n") << std::endl;
+                log.push_back("modulePath=" + util::join(modulePath, "::"));
+                log.push_back("localModuleName=" + localModuleName);
+                log.push_back("fileName=" + fileName);
             }
-            return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed to import, file " + fileName + " not found");
-        }
+            std::string text;
+            std::string line;
+            std::ifstream inputf;
+            inputf.open(fileName);
+            if (inputf.is_open())
+            {
+                while (std::getline(inputf, line))
+                    text += line + "\n";
+            }
+            else
+            {
+                if (logModuleActivity)
+                {
+                    log.push_back("fileName not found");
+                    std::cerr << util::join(log, "\n") << std::endl;
+                }
+                return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed to import, file " + fileName + " not found", obj::ErrorType::ImportError);
+            }
 
-        auto newEnvironment = makeNewEnvironment(nullptr);
-        auto moduleObj = std::make_shared<obj::Module>();
-        moduleObj->environment = newEnvironment;
-        moduleObj->state = obj::ModuleState::Unknown;
+            auto newEnvironment = makeNewEnvironment(nullptr);
+            moduleObj = std::make_shared<obj::Module>();
+            moduleObj->environment = newEnvironment;
+            moduleObj->fileName = fileName;
+            moduleObj->state = obj::ModuleState::Unknown;
+            moduleText = std::move(text);
+        }
 
         std::shared_ptr<obj::Environment> whereToAddModule = environment;
 
@@ -3694,7 +3747,7 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
                         log.push_back(" " + moduleName + " was not a module but of type " + obj::toString(referredObj->type));
                         std::cerr << util::join(log, "\n") << std::endl;
                     }
-                    return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed to import, name " + moduleName + " already used");
+                    return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed to import, name " + moduleName + " already used", obj::ErrorType::ImportError);
                 }
                 whereToAddModule = static_cast<obj::Module *>(referredObj.get())->environment;
             }
@@ -3722,7 +3775,7 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
                     log.push_back(localModuleName + " was not a module");
                     std::cerr << util::join(log, "\n") << std::endl;
                 }
-                return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed to import, name " + localModuleName + " already used");
+                return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed to import, name " + localModuleName + " already used", obj::ErrorType::ImportError);
             }
             auto existingModule = static_cast<obj::Module *>(referredObj.get());
 
@@ -3734,7 +3787,7 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
                     log.push_back(localModuleName + " was a module in Unknown state");
                     std::cerr << util::join(log, "\n") << std::endl;
                 }
-                return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " in unknown state");
+                return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " in unknown state", obj::ErrorType::ImportError);
             case obj::ModuleState::Loaded:
                 if (logModuleActivity)
                 {
@@ -3744,7 +3797,16 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
                 return NullObject;
             case obj::ModuleState::Defined:
             {
-                auto runResult = builtin::run_impl(text, fileName, newEnvironment);
+                auto runResult = builtin::run_impl(moduleText, moduleObj->fileName, moduleObj->environment);
+                if (!runResult)
+                {
+                    if (logModuleActivity)
+                    {
+                        log.push_back("fatal failure to run the module src");
+                        std::cerr << util::join(log, "\n") << std::endl;
+                    }
+                    return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " cannot be loaded, evaluation failed", obj::ErrorType::ImportError);
+                }
                 if (runResult->type == obj::ObjectType::Error)
                 {
                     if (logModuleActivity)
@@ -3768,7 +3830,7 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
                     {
                         if (logModuleActivity)
                             std::cerr << util::join(log, "\n") << std::endl;
-                        return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " a module definition contains other objects beyond other modules");
+                        return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " a module definition contains other objects beyond other modules", obj::ErrorType::ImportError);
                     }
 
                     if (moduleObj->environment->has(name))
@@ -3783,7 +3845,7 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
                                 log.push_back(" " + name + " was not a module and conflicts");
                                 std::cerr << util::join(log, "\n") << std::endl;
                             }
-                            return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed, sub module " + name + " is in conflict with variable/functions defined in module");
+                            return std::make_shared<obj::Error>("import: " + util::join(modulePath, "::") + " failed, sub module " + name + " is in conflict with variable/functions defined in module", obj::ErrorType::ImportError);
                         }
                         if (logModuleActivity)
                             log.push_back(" " + name + " assigned in module environment");
@@ -3803,15 +3865,19 @@ std::shared_ptr<obj::Object> evalImportStatement(ast::ImportStatement *statement
         }
         else
         {
-            auto runResult = builtin::run_impl(text, fileName, newEnvironment);
-            if (runResult->type == obj::ObjectType::Error)
+            if (moduleObj->state == obj::ModuleState::Unknown)
             {
-                if (logModuleActivity)
+                // for modules that are builtin, the state will be loaded/defined, so no need to execute the code for them
+                auto runResult = builtin::run_impl(moduleText, moduleObj->fileName, moduleObj->environment);
+                if (runResult->type == obj::ObjectType::Error)
                 {
-                    log.push_back("execution of module code resulted in error");
-                    std::cerr << util::join(log, "\n") << std::endl;
+                    if (logModuleActivity)
+                    {
+                        log.push_back("execution of module code resulted in error");
+                        std::cerr << util::join(log, "\n") << std::endl;
+                    }
+                    return runResult;
                 }
-                return runResult;
             }
             moduleObj->state = obj::ModuleState::Loaded;
             if (logModuleActivity)
@@ -3849,7 +3915,7 @@ std::shared_ptr<obj::Object> evalStatements(std::vector<std::unique_ptr<ast::Sta
 std::shared_ptr<obj::Object> evalStatement(ast::Statement *statement, const std::shared_ptr<obj::Environment> &environment)
 {
     if (!statement)
-        return std::make_shared<obj::Error>(obj::Error("Unknown NULL statement"));
+        return std::make_shared<obj::Error>("Unknown NULL statement", obj::ErrorType::TypeError);
 
     switch (statement->type)
     {
@@ -3878,7 +3944,7 @@ std::shared_ptr<obj::Object> evalStatement(ast::Statement *statement, const std:
         return evalImportStatement(static_cast<ast::ImportStatement *>(statement), environment);
     };
 
-    return std::make_shared<obj::Error>(obj::Error("Unknown statement", statement->token));
+    return std::make_shared<obj::Error>("Unknown statement", obj::ErrorType::TypeError, statement->token);
 }
 
 std::shared_ptr<obj::Object> evalProgram(ast::Program *program, const std::shared_ptr<obj::Environment> &environment)

@@ -12,9 +12,9 @@ namespace
         size_t nrExpectedArguments)
     {
         if (self.get()->type != expectedType)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type), obj::ErrorType::TypeError);
         if (arguments.size() != nrExpectedArguments)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
         return nullptr;
     }
 }
@@ -100,7 +100,7 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::Dictionary)
-            return std::make_shared<obj::Error>("update: expected argument 1 of type dictionary");
+            return std::make_shared<obj::Error>("update: expected argument 1 of type dictionary", obj::ErrorType::TypeError);
         auto otherDictionary = static_cast<obj::Dictionary *>(arguments[0].get());
 
         auto dictObj = static_cast<obj::Dictionary *>(self.get());

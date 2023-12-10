@@ -13,7 +13,7 @@ namespace
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("expected 1 argument");
+            return std::make_shared<obj::Error>("expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto errorObj = dynamic_cast<obj::Error *>(evaluatedExpr.get());
@@ -24,7 +24,7 @@ namespace
         if (doubleObj)
             return std::make_shared<obj::Double>(double_fn(doubleObj->value));
 
-        return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type)));
+        return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError));
     }
 }
 
@@ -36,7 +36,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 2)
-            return std::make_shared<obj::Error>("expected 2 argument");
+            return std::make_shared<obj::Error>("expected 2 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr = evalExpression(arguments->at(0).get(), environment);
         auto errorObj = dynamic_cast<obj::Error *>(evaluatedExpr.get());
@@ -45,7 +45,7 @@ namespace builtin
 
         auto doubleObj = dynamic_cast<obj::Double *>(evaluatedExpr.get());
         if (!doubleObj)
-            return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type)));
+            return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedExpr->type), obj::ErrorType::TypeError));
 
         auto evaluatedSecondExpr = evalExpression(arguments->at(1).get(), environment);
         auto errorObjSecond = dynamic_cast<obj::Error *>(evaluatedSecondExpr.get());
@@ -54,7 +54,7 @@ namespace builtin
 
         auto doubleSecondObj = dynamic_cast<obj::Double *>(evaluatedSecondExpr.get());
         if (!doubleSecondObj)
-            return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedSecondExpr->type)));
+            return std::make_shared<obj::Error>(obj::Error("Invalid type for function, expected double, got: " + obj::toString(evaluatedSecondExpr->type), obj::ErrorType::TypeError));
 
         return std::make_shared<obj::Double>(pow(doubleObj->value, doubleSecondObj->value));
     }

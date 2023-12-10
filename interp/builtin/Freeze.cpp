@@ -9,7 +9,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("frozen: expected 1 arguments");
+            return obj::makeTypeError("frozen: expected 1 arguments");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         bool eq = evaluatedExpr->frozen > 0;
@@ -22,7 +22,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("freeze: expected 1 arguments");
+            return obj::makeTypeError("freeze: expected 1 arguments");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         ++evaluatedExpr->frozen;
@@ -35,7 +35,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("defrost: expected 1 arguments");
+            return obj::makeTypeError("defrost: expected 1 arguments");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->frozen > 0)
@@ -49,7 +49,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("freezer: expected 1 arguments");
+            return obj::makeTypeError("freezer: expected 1 arguments");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
 

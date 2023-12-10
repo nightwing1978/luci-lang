@@ -1,0 +1,46 @@
+import test_help;
+import os;
+import os::path;
+
+test_help::test_eq(os::getenv("PATH").size()>0, true, "requesting the PATH env var");
+test_help::test_eq(os::system("echo boo"), 0, "executing the echo command");
+
+test_help::test_eq(os::create_directory("test_create_dir"), true, "create_directory");
+test_help::test_eq(os::create_directories(os::path::join(["test_create_dir","sub_dir"])), true, "create_directories");
+
+let f = open(os::path::join(["test_create_dir","sub_dir","test.txt"]), "w");
+f.write("test");
+f.close();
+
+test_help::test_eq(
+    os::list_dir(os::path::join(["test_create_dir","sub_dir"])), 
+    [os::path::join(["test_create_dir","sub_dir","test.txt"])],
+    "list_dir");
+
+test_help::test_eq(
+    os::list_dir_recursively(os::path::join(["test_create_dir"])), 
+    [
+        os::path::join(["test_create_dir","sub_dir"]),
+        os::path::join(["test_create_dir","sub_dir","test.txt"])
+    ],
+    "list_dir_recursively");
+
+test_help::test_eq(
+    os::copy(os::path::join(["test_create_dir","sub_dir","test.txt"]), 
+             os::path::join(["test_create_dir","sub_dir","copy.txt"])),
+    null, 
+    "copy");
+
+test_help::test_eq(
+    os::rename(os::path::join(["test_create_dir","sub_dir","copy.txt"]), 
+             os::path::join(["test_create_dir","sub_dir","renamed.txt"])),
+    null,
+    "rename");
+
+test_help::test_eq(
+    os::exists(os::path::join(["test_create_dir","sub_dir","renamed.txt"])),
+    true,
+    "exists");
+
+test_help::test_eq(os::remove(os::path::join(["test_create_dir","sub_dir","renamed.txt"])), true, "remove");
+test_help::test_eq(os::remove_all("test_create_dir"), 3, "remove_all");

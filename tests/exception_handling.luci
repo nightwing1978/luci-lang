@@ -1,19 +1,19 @@
+import test_help;
+import error_type;
+
 try 
 {
     let a : int = 3.0;
 }
 except ( e )
 {
-    print("Error caught ", e);
-    print("Type str ", type_str(e));
-    print("e.error_type=", e.error_type);
-
+    test_help::test_eq(e.error_type(), error_type.type_error, "type error on assignment");
     try 
     {
         let a : int = 3.0;
     } 
     except (d)
     {
-        print("nested");
+        test_help::test_eq(d.error_type(), error_type.type_error, "type error on assignment");
     };
 };

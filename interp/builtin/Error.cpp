@@ -12,9 +12,9 @@ namespace
         size_t nrExpectedArguments)
     {
         if (self.get()->type != expectedType)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type));
+            return obj::makeTypeError(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type));
         if (arguments.size() != nrExpectedArguments)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()));
+            return obj::makeTypeError(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()));
         return nullptr;
     }
 }
@@ -36,7 +36,7 @@ namespace builtin
         if (errorObj)
             return errorObj;
 
-        return std::make_shared<obj::Integer>(static_cast<obj::Error *>(self.get())->errorType);
+        return std::make_shared<obj::Integer>(static_cast<int>(static_cast<obj::Error *>(self.get())->errorType));
     }
 
     std::shared_ptr<obj::Object> error_file_name(const std::shared_ptr<obj::Object> &self, const std::vector<std::shared_ptr<obj::Object>> &arguments)
@@ -84,15 +84,5 @@ namespace builtin
         };
 
         return errorBuiltinType;
-    }
-
-    std::shared_ptr<obj::Module> makeModuleErrorType()
-    {
-        auto errorTypeModule = std::make_shared<obj::Module>();
-        errorTypeModule->state = obj::ModuleState::Defined;
-        errorTypeModule->environment = std::make_shared<obj::Environment>();
-        // errorTypeModule->environment->add();
-
-        return errorTypeModule;
     }
 }

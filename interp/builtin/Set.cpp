@@ -12,9 +12,9 @@ namespace
         size_t nrExpectedArguments)
     {
         if (self.get()->type != expectedType)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type), obj::ErrorType::TypeError);
         if (arguments.size() != nrExpectedArguments)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
         return nullptr;
     }
 }
@@ -32,7 +32,7 @@ namespace builtin
     std::shared_ptr<obj::Object> set_clear(const std::shared_ptr<obj::Object> &self, const std::vector<std::shared_ptr<obj::Object>> &arguments)
     {
         if (self->frozen > 0)
-            return std::make_shared<obj::Error>("set clear expects a non-frozen object");
+            return std::make_shared<obj::Error>("set clear expects a non-frozen object", obj::ErrorType::TypeError);
 
         auto errorObj = validateArguments("clear", self, arguments, obj::ObjectType::Set, 0);
         if (errorObj)

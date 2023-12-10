@@ -30,6 +30,7 @@ namespace typing
         case obj::ObjectType::String:
         case obj::ObjectType::Error:
         case obj::ObjectType::Range:
+        case obj::ObjectType::Regex:
         {
             std::map<obj::ObjectType, std::string> builtInRevTypeMapping = {
                 {obj::ObjectType::Null, "null"},
@@ -43,6 +44,7 @@ namespace typing
                 {obj::ObjectType::Module, "module"},
                 {obj::ObjectType::Thread, "thread"},
                 {obj::ObjectType::Range, "range"},
+                {obj::ObjectType::Regex, "regex"},
             };
             auto typeIdentifier = std::make_unique<ast::TypeIdentifier>();
             typeIdentifier->value = builtInRevTypeMapping.at(obj->type);
@@ -321,6 +323,7 @@ namespace typing
                 {"io", obj::ObjectType::IOObject},
                 {"module", obj::ObjectType::Module},
                 {"thread", obj::ObjectType::Thread},
+                {"regex", obj::ObjectType::Regex},
                 {"range", obj::ObjectType::Range},
             };
             auto expectedObjType = builtInTypeMapping.find(typeIdentifierValue);

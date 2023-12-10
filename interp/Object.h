@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <atomic>
+#include <regex>
 #include <thread>
 
 namespace obj
@@ -47,6 +48,7 @@ namespace obj
         Module = 28,
         Thread = 29,
         Range = 30,
+        Regex = 31,
     };
 
     std::string toString(const ObjectType &type);
@@ -75,16 +77,34 @@ namespace obj
         ~ObjectFreezer() { --obj->frozen; }
     };
 
+    enum class ErrorType : int
+    {
+        UndefinedError = 0,          /* */
+        TypeError = 1,               /* wrong number of arguments, wrong arguments */
+        ConstError = 2,              /* trying to modify a variable marked as const */
+        IdentifierNotFound = 3,      /* trying to access an identifier that is not found */
+        IdentifierAlreadyExists = 4, /* trying to redefine an identifier */
+        ValueError = 5,              /* result of operation generated an invalid value, say when casting to a particular type */
+        KeyError = 6,                /* trying to access a key in a dict that is not present */
+        IndexError = 7,              /* trying to access an index out of range */
+        ImportError = 8,             /* trying to import a module that didn't exist or gave problems */
+        SyntaxError = 9,             /* trying to dynamically run a program gave a syntax/parsing error */
+        OSError = 10,                /* error related to the OS or file system */
+    };
+
     struct Error : public Object
     {
         Token token;
         std::string msg;
-        int errorType = 0;
+        ErrorType errorType = ErrorType::UndefinedError;
         virtual std::string inspect() const override;
-        virtual std::shared_ptr<Object> clone() const override { return std::make_shared<Error>(msg, token); };
-        Error(const std::string &imsg) : Object(ObjectType::Error), msg(imsg){};
-        Error(const std::string &imsg, Token itoken) : Object(ObjectType::Error), msg(imsg), token(itoken){};
+        virtual std::shared_ptr<Object> clone() const override { return std::make_shared<Error>(msg, errorType, token); };
+        Error(const std::string &imsg, ErrorType iErrorType) : Object(ObjectType::Error), msg(imsg), errorType(iErrorType){};
+        Error(const std::string &imsg, ErrorType iErrorType, Token itoken) : Object(ObjectType::Error), msg(imsg), errorType(iErrorType), token(itoken){};
     };
+
+    // return a TypeError object
+    std::shared_ptr<Error> makeTypeError(const std::string &msg);
 
     struct Environment
     {
@@ -121,6 +141,7 @@ namespace obj
     {
         ModuleState state = obj::ModuleState::Unknown;
         std::shared_ptr<Environment> environment;
+        std::string fileName;
 
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override { return std::make_shared<obj::Module>(); };
@@ -326,7 +347,7 @@ namespace obj
                 ++index;
                 return TArrayType::valueConstruct(array->value[index - 1]);
             }
-            return std::make_shared<obj::Error>("next referencing invalid iterator");
+            return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
         }
         ArrayIterator(std::shared_ptr<TArrayType> iarray, size_t iindex) : Iterator(), array(iarray), freezer(iarray), index(iindex){};
     };
@@ -353,7 +374,7 @@ namespace obj
                 current += rangeObj->stride;
                 return std::make_shared<Integer>(currentValue);
             }
-            return std::make_shared<obj::Error>("next referencing invalid iterator");
+            return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
         }
         RangeIterator(std::shared_ptr<Range> irange, int64_t icurrent) : Iterator(), rangeObj(irange), current(icurrent){};
     };
@@ -384,7 +405,7 @@ namespace obj
                 std::string charStr = std::string("") + stringObj->value[index - 1];
                 return std::make_shared<String>(String(charStr));
             }
-            return std::make_shared<obj::Error>("next referencing invalid iterator");
+            return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
         }
         StringIterator(std::shared_ptr<String> istring, size_t iindex) : Iterator(), stringObj(istring), freezer(istring), index(iindex){};
     };
@@ -471,7 +492,7 @@ namespace obj
                 ++iterator;
                 return value;
             }
-            return std::make_shared<obj::Error>("next referencing invalid iterator");
+            return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
         }
         DictionaryIterator(std::shared_ptr<Dictionary> idict, TDictionaryMap::iterator iiterator) : Iterator(), dict(idict), freezer(idict), iterator(iiterator){};
     };
@@ -504,7 +525,7 @@ namespace obj
                 ++iterator;
                 return value;
             }
-            return std::make_shared<obj::Error>("next referencing invalid iterator");
+            return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
         }
         SetIterator(std::shared_ptr<Set> iset, TSetSet::iterator iiterator) : Iterator(), setObj(iset), freezer(iset), iterator(iiterator){};
     };
@@ -675,6 +696,19 @@ namespace obj
         virtual void seek(size_t off, int whence);
         virtual int64_t tell() const;
         virtual void write(const std::string &bytes);
+    };
+
+    struct Regex : public Object
+    {
+        std::shared_ptr<std::regex> regex;
+
+        virtual std::string inspect() const override;
+        virtual std::shared_ptr<Object> clone() const override
+        {
+            return std::make_shared<obj::Regex>(*regex);
+        };
+        Regex(const std::regex &re);
+        virtual ~Regex();
     };
 
     struct Thread : public Object

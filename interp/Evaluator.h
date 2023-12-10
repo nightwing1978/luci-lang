@@ -34,4 +34,10 @@ namespace builtin
     std::shared_ptr<obj::Object> makeBuiltInFunctionObj(obj::TBuiltinFunction fn, const std::string &argTypeStr, const std::string &returnTypeStr);
 }
 
+#define RETURN_TYPE_ERROR_ON_MISMATCH(expr, expectedType, msg) \
+    if (expr->type == obj::ObjectType::Error)                  \
+        return expr;                                           \
+    if (expr->type != obj::ObjectType::expectedType)           \
+        return obj::makeTypeError(msg);
+
 #endif

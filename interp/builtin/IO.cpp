@@ -24,9 +24,9 @@ namespace
         std::vector<size_t> nrExpectedArguments)
     {
         if (self.get()->type != expectedType)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type), obj::ErrorType::TypeError);
         if (std::find(nrExpectedArguments.begin(), nrExpectedArguments.end(), arguments.size()) == nrExpectedArguments.end())
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
         return nullptr;
     }
 }
@@ -40,13 +40,13 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("open: expected argument 1 of type string");
-        if (arguments.size() >= 1 && arguments[1]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("open: expected argument 2 of type string");
+            return std::make_shared<obj::Error>("open: expected argument 1 of type string", obj::ErrorType::TypeError);
+        if (arguments.size() > 1 && arguments[1]->type != obj::ObjectType::String)
+            return std::make_shared<obj::Error>("open: expected argument 2 of type string", obj::ErrorType::TypeError);
 
         auto fileName = static_cast<obj::String *>(arguments[0].get())->value;
         std::string openModeStr = "r";
-        if (arguments.size() >= 1)
+        if (arguments.size() > 1)
             openModeStr = static_cast<obj::String *>(arguments[1].get())->value;
 
         std::map<std::string, std::ios_base::openmode> openModeMapping = {
@@ -62,7 +62,7 @@ namespace builtin
             std::vector<std::string> openModeChoices;
             for (const auto &[k, v] : openModeMapping)
                 openModeChoices.push_back(k);
-            return std::make_shared<obj::Error>("open: openmode has to be one of " + util::join(openModeChoices, ","));
+            return std::make_shared<obj::Error>("open: openmode has to be one of " + util::join(openModeChoices, ","), obj::ErrorType::TypeError);
         }
 
         std::ios_base::openmode openMode = openModeMapping.at(openModeStr);
@@ -99,7 +99,7 @@ namespace builtin
         if (arguments.size() == 1)
         {
             if (arguments[0]->type != obj::ObjectType::Integer)
-                return std::make_shared<obj::Error>("read: expected argument 1 of type int");
+                return std::make_shared<obj::Error>("read: expected argument 1 of type int", obj::ErrorType::TypeError);
 
             maxSize = static_cast<size_t>(static_cast<obj::Integer *>(arguments[0].get())->value);
         }
@@ -118,7 +118,7 @@ namespace builtin
         if (arguments.size() == 1)
         {
             if (arguments[0]->type != obj::ObjectType::Integer)
-                return std::make_shared<obj::Error>("read_line: expected argument 1 of type int");
+                return std::make_shared<obj::Error>("read_line: expected argument 1 of type int", obj::ErrorType::TypeError);
 
             maxSize = static_cast<size_t>(static_cast<obj::Integer *>(arguments[0].get())->value);
         }
@@ -137,7 +137,7 @@ namespace builtin
         if (arguments.size() == 1)
         {
             if (arguments[0]->type != obj::ObjectType::Integer)
-                return std::make_shared<obj::Error>("read_lines: expected argument 1 of type int");
+                return std::make_shared<obj::Error>("read_lines: expected argument 1 of type int", obj::ErrorType::TypeError);
 
             hint = static_cast<size_t>(static_cast<obj::Integer *>(arguments[0].get())->value);
         }
@@ -160,19 +160,19 @@ namespace builtin
         if (arguments.size() >= 1)
         {
             if (arguments[0]->type != obj::ObjectType::Integer)
-                return std::make_shared<obj::Error>("seek: expected argument 1 of type int");
+                return std::make_shared<obj::Error>("seek: expected argument 1 of type int", obj::ErrorType::TypeError);
 
             offset = static_cast<size_t>(static_cast<obj::Integer *>(arguments[0].get())->value);
         }
         if (arguments.size() == 2)
         {
             if (arguments[1]->type != obj::ObjectType::Integer)
-                return std::make_shared<obj::Error>("seek: expected argument 2 of type int");
+                return std::make_shared<obj::Error>("seek: expected argument 2 of type int", obj::ErrorType::TypeError);
 
             whence = static_cast<int>(static_cast<obj::Integer *>(arguments[0].get())->value);
             if (whence != 0 && whence != 1 && whence != 2)
             {
-                return std::make_shared<obj::Error>("seek: expected argument 2 to be either 0,1,2");
+                return std::make_shared<obj::Error>("seek: expected argument 2 to be either 0,1,2", obj::ErrorType::TypeError);
             }
         }
 
@@ -196,7 +196,7 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("write: expected argument 1 of type str");
+            return std::make_shared<obj::Error>("write: expected argument 1 of type str", obj::ErrorType::TypeError);
 
         const std::string &value = static_cast<obj::String *>(arguments[0].get())->value;
         static_cast<obj::IOObject *>(self.get())->write(value);

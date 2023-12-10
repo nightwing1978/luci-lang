@@ -1,0 +1,19 @@
+import test_help;
+import regex;
+
+let re = regex::regex;
+
+test_help::test_eq(  
+    regex::match(re("[a-z]+\\.txt"), "foo.txt"),
+    ["foo.txt"], 
+    "match");
+
+test_help::test_eq(  
+    regex::match(re("[a-z]+\\.txt"), "bar.dat"),
+    null, 
+    "no match");
+
+test_help::test_eq(  
+    regex::replace(re("a|e|i|o|u"), "Quick brown fox", "[$&]"),
+    "Q[u][i]ck br[o]wn f[o]x", 
+    "replace");

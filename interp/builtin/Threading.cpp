@@ -10,11 +10,10 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("thread: expected 1 argument");
+            return std::make_shared<obj::Error>("thread: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
-        if (evaluatedExpr1->type != obj::ObjectType::Function)
-            return std::make_shared<obj::Error>("thread: expected argument 1 to be a function");
+        RETURN_TYPE_ERROR_ON_MISMATCH(evaluatedExpr1, Function, "thread: expected argument 1 to be a function");
 
         auto threadObj = std::make_shared<obj::Thread>();
         threadObj->function = std::dynamic_pointer_cast<obj::Function>(evaluatedExpr1);
@@ -28,11 +27,10 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("sleep: expected 1 argument");
+            return std::make_shared<obj::Error>("sleep: expected 1 argument", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
-        if (evaluatedExpr1->type != obj::ObjectType::Double)
-            return std::make_shared<obj::Error>("sleep: expected argument 1 to be a double");
+        RETURN_TYPE_ERROR_ON_MISMATCH(evaluatedExpr1, Function, "sleep: expected argument 1 to be a double");
 
         int64_t nanoseconds = static_cast<int64_t>(1e9 * static_cast<obj::Double *>(evaluatedExpr1.get())->value);
         std::this_thread::sleep_for(std::chrono::nanoseconds(nanoseconds));

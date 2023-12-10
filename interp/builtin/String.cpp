@@ -15,19 +15,19 @@ namespace
         std::set<size_t> nrExpectedArguments)
     {
         if (self.get()->type != expectedType)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type), obj::ErrorType::TypeError);
         if (nrExpectedArguments.find(arguments.size()) == nrExpectedArguments.end())
         {
             if (nrExpectedArguments.size() == 1)
             {
-                return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(*nrExpectedArguments.begin()) + " arguments, got " + std::to_string(arguments.size()));
+                return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(*nrExpectedArguments.begin()) + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
             }
             else
             {
                 std::vector<std::string> nrExpected;
                 for (const auto &element : nrExpectedArguments)
                     nrExpected.push_back(std::to_string(element));
-                return std::make_shared<obj::Error>(errorPrefix + ": expected " + util::join(nrExpected, ",") + " arguments, got " + std::to_string(arguments.size()));
+                return std::make_shared<obj::Error>(errorPrefix + ": expected " + util::join(nrExpected, ",") + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
             }
         }
         return nullptr;
@@ -42,10 +42,10 @@ namespace
         size_t nrExpectedArguments)
     {
         if (self.get()->type != expectedType)
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + toString(expectedType) + ", got " + toString(self.get()->type), obj::ErrorType::TypeError);
         if (nrExpectedArguments != arguments.size())
         {
-            return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()));
+            return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
         }
         return nullptr;
     }
@@ -65,7 +65,7 @@ namespace builtin
     std::shared_ptr<obj::Object> string_clear(const std::shared_ptr<obj::Object> &self, const std::vector<std::shared_ptr<obj::Object>> &arguments)
     {
         if (self->frozen > 0)
-            return std::make_shared<obj::Error>("string clear expects a non-frozen object");
+            return std::make_shared<obj::Error>("string clear expects a non-frozen object", obj::ErrorType::TypeError);
 
         auto errorObj = validateArguments("clear", self, arguments, obj::ObjectType::String, 0);
         if (errorObj)
@@ -91,7 +91,7 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("starts_with: expected argument 1 of type str");
+            return std::make_shared<obj::Error>("starts_with: expected argument 1 of type str", obj::ErrorType::TypeError);
 
         const std::string &selfStr = static_cast<obj::String *>(self.get())->value;
         const std::string &whatStr = static_cast<obj::String *>(arguments[0].get())->value;
@@ -107,7 +107,7 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("ends_with: expected argument 1 of type str");
+            return std::make_shared<obj::Error>("ends_with: expected argument 1 of type str", obj::ErrorType::TypeError);
 
         const std::string &selfStr = static_cast<obj::String *>(self.get())->value;
         const std::string &whatStr = static_cast<obj::String *>(arguments[0].get())->value;
@@ -125,7 +125,7 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("find: expected argument 1 of type str");
+            return std::make_shared<obj::Error>("find: expected argument 1 of type str", obj::ErrorType::TypeError);
 
         const std::string &selfStr = static_cast<obj::String *>(self.get())->value;
         const std::string &whatStr = static_cast<obj::String *>(arguments[0].get())->value;
@@ -140,9 +140,9 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("replace: expected argument 1 of type str");
+            return std::make_shared<obj::Error>("replace: expected argument 1 of type str", obj::ErrorType::TypeError);
         if (arguments[1]->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("replace: expected argument 2 of type str");
+            return std::make_shared<obj::Error>("replace: expected argument 2 of type str", obj::ErrorType::TypeError);
 
         const std::string &selfStr = static_cast<obj::String *>(self.get())->value;
         const std::string &whatStr = static_cast<obj::String *>(arguments[0].get())->value;
@@ -169,7 +169,7 @@ namespace builtin
         if (arguments.size() == 1)
         {
             if (arguments[0]->type != obj::ObjectType::String)
-                return std::make_shared<obj::Error>("split: expected argument 1 of type str");
+                return std::make_shared<obj::Error>("split: expected argument 1 of type str", obj::ErrorType::TypeError);
 
             splitDelimiters = static_cast<obj::String *>(arguments[0].get())->value;
         }
@@ -213,14 +213,14 @@ namespace builtin
             return errorObj;
 
         if (arguments[0]->type != obj::ObjectType::Array)
-            return std::make_shared<obj::Error>("join: expected argument 1 of type array");
+            return std::make_shared<obj::Error>("join: expected argument 1 of type array", obj::ErrorType::TypeError);
 
         std::vector<std::string> whatStrs;
         obj::Array *arr = static_cast<obj::Array *>(arguments[0].get());
         for (const auto &element : arr->value)
         {
             if (element->type != obj::ObjectType::String)
-                return std::make_shared<obj::Error>("join: expected argument array of str");
+                return std::make_shared<obj::Error>("join: expected argument array of str", obj::ErrorType::TypeError);
             whatStrs.push_back(static_cast<obj::String *>(element.get())->value);
         }
 

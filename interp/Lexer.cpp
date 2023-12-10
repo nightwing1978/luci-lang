@@ -240,7 +240,10 @@ Token readSingleLineDocToken(Lexer &lexer)
     {
         readChar(lexer);
     }
-    token.literal = lexer.input.substr(position, lexer.position - position);
+    int carrierOffset = 0;
+    if (lexer.position>0 && lexer.input[lexer.position-1]=='\r')
+        carrierOffset = 1;
+    token.literal = lexer.input.substr(position, lexer.position - position - carrierOffset);
     token.type = TokenType::DOC;
     return token;
 }

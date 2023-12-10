@@ -82,6 +82,8 @@ namespace obj
             return "Thread";
         case ObjectType::Range:
             return "Range";
+        case ObjectType::Regex:
+            return "Regex";
         };
         return "Unknown Type";
     }
@@ -285,6 +287,11 @@ namespace obj
         return "Error(" + msg + ") at " + *token.fileName + "(" + std::to_string(token.lineNumber) + "," + std::to_string(token.columnNumber) + ")";
     }
 
+    std::shared_ptr<Error> makeTypeError(const std::string &msg)
+    {
+        return std::make_shared<Error>(msg, ErrorType::TypeError);
+    }
+
     std::string Exit::inspect() const
     {
         return "Exit(" + std::to_string(value) + ") at " + std::to_string(token.lineNumber) + ":" + std::to_string(token.columnNumber);
@@ -331,7 +338,7 @@ namespace obj
         {
             if (outer)
                 return outer->get(name);
-            return std::make_unique<obj::Error>(obj::Error("identifier not found: " + name));
+            return std::make_unique<obj::Error>(obj::Error("Identifier not found: " + name, obj::ErrorType::IdentifierNotFound));
         }
         return storeIt->second.obj;
     }
@@ -355,11 +362,11 @@ namespace obj
         {
             if (outer)
                 return outer->set(name, value);
-            return std::make_unique<obj::Error>(obj::Error("identifier not found: " + name));
+            return std::make_unique<obj::Error>("identifier not found: " + name, obj::ErrorType::IdentifierNotFound);
         }
 
         if (storeIt->second.constant)
-            return std::make_unique<obj::Error>(obj::Error("variable is const: " + name));
+            return std::make_unique<obj::Error>("variable is const: " + name, obj::ErrorType::ConstError);
 
         storeIt->second.obj = std::move(value);
         return storeIt->second.obj;
@@ -370,7 +377,7 @@ namespace obj
         auto storeIt = store.find(name);
         if (storeIt != store.end())
         {
-            return std::make_unique<obj::Error>(obj::Error("identifier already found: " + name));
+            return std::make_unique<obj::Error>("identifier already found: " + name, obj::ErrorType::IdentifierAlreadyExists);
         }
 
         auto storeInsertionIt = store.insert(std::make_pair(name, TTokenSharedObj({value, constant, type})));
@@ -588,4 +595,19 @@ namespace obj
     {
         return "<thread>";
     }
+
+    Regex::Regex(const std::regex &re) : Object(ObjectType::Regex)
+    {
+        regex = std::make_shared<std::regex>(re);
+    }
+
+    Regex::~Regex()
+    {
+    }
+
+    std::string Regex::inspect() const
+    {
+        return "<regex>";
+    }
+
 }
