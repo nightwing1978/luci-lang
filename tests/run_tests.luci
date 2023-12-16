@@ -10,17 +10,23 @@ let const tests : [str] = [
     "custom_types.luci",
     "dictionary_operations.luci",
     "doc_strings.luci",
+    "empty.luci",
     "exception_handling.luci",
     "file_operations.luci",
     "freezing.luci",
     "iter.luci",
     "os.luci",
     "range.luci",
+    "regex.luci",
     "scope_tests.luci",
-    "set_operations.luci",
+    "set_operations_frozen.luci",
     "set_operations_non_trivial.luci",
+    "set_operations.luci",
     "sort.luci",
-    "string_operations.luci"
+    "string_operations.luci",
+    "test_modules.luci",
+    "threads.luci",
+    "types.luci"
 ];
 
 print("Start of testing");

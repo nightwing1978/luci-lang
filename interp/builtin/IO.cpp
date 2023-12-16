@@ -1,3 +1,11 @@
+/*******************************************************************
+ * Copyright (c) 2022-2023 TheWallSoft
+ * This file is part of the Luci Language
+ * tom@thewallsoft.com, https://github.com/nightwing1978/luci-lang
+ * See Copyright Notice in the LICENSE file or at
+ * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
+ *******************************************************************/
+
 #include "IO.h"
 #include "../Evaluator.h"
 #include "../Util.h"

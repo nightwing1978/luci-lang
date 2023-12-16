@@ -1,3 +1,11 @@
+/*******************************************************************
+ * Copyright (c) 2022-2023 TheWallSoft
+ * This file is part of the Luci Language
+ * tom@thewallsoft.com, https://github.com/nightwing1978/luci-lang
+ * See Copyright Notice in the LICENSE file or at
+ * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
+ *******************************************************************/
+
 #include "Evaluator.h"
 #include "Version.h"
 #include "Typing.h"
@@ -26,6 +34,7 @@
 #include "builtin/Set.h"
 #include "builtin/String.h"
 #include "builtin/Freeze.h"
+#include "builtin/Thread.h"
 #include "builtin/Threading.h"
 
 std::shared_ptr<obj::Object> evalStatement(ast::Statement *statement, const std::shared_ptr<obj::Environment> &environment);
@@ -184,7 +193,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("address: expected 1 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("address: expected 1 argument");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto addr = reinterpret_cast<uint64_t>(evaluatedExpr.get());
@@ -197,7 +206,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("lookup_hash: expected 1 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("lookup_hash: expected 1 argument");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto hash = obj::Hash().operator()(evaluatedExpr);
@@ -210,7 +219,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("lookup_hashable: expected 1 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("lookup_hashable: expected 1 argument");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         return std::make_shared<obj::Boolean>(obj::Boolean(evaluatedExpr->hashAble()));
@@ -222,7 +231,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 2)
-            return std::make_shared<obj::Error>("lookup_equal: expected 2 arguments", obj::ErrorType::TypeError);
+            return obj::makeTypeError("lookup_equal: expected 2 arguments");
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
         auto evaluatedExpr2 = evalExpression(arguments->front().get(), environment);
@@ -236,12 +245,12 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("type_str: expected 1 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("type_str: expected 1 argument");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         auto typeExpr = typing::computeType(evaluatedExpr.get());
         if (typeExpr == nullptr)
-            return std::make_shared<obj::Error>("type_str: cannot compute type", obj::ErrorType::TypeError);
+            return obj::makeTypeError("type_str: cannot compute type");
 
         return std::make_shared<obj::String>(typeExpr->text());
     }
@@ -252,7 +261,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("type_str: expected 1 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("type_str: expected 1 argument");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         return std::make_shared<obj::String>(obj::toString(evaluatedExpr->type));
@@ -267,6 +276,8 @@ namespace builtin
         for (const auto &arg : *arguments)
         {
             auto evaluatedExpr = evalExpression(arg.get(), environment);
+            if (evaluatedExpr->type == obj::ObjectType::Error)
+                return evaluatedExpr;
             // for most expression their inspected value is fine, except for strings where the extra quotes make it
             // not useful, so for that case we trim the inspected value;
             std::string inspected = evaluatedExpr->inspect();
@@ -297,7 +308,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 0)
-            return std::make_shared<obj::Error>("input_line: expected 1 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("input_line: expected 1 argument");
 
         std::string input;
         std::cin >> input;
@@ -310,7 +321,7 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("doc: expected 1 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("doc: expected 1 argument");
 
         auto evaluatedExpr = evalExpression(arguments->front().get(), environment);
         if (evaluatedExpr->type == obj::ObjectType::Function)
@@ -335,18 +346,16 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() < 1 || arguments->size() > 2)
-            return std::make_shared<obj::Error>("open: expected 1 or 2 argument", obj::ErrorType::TypeError);
+            return obj::makeTypeError("open: expected 1 or 2 argument of type (str,str)");
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
-        if (evaluatedExpr1->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("open: expected argument 1 to be a string", obj::ErrorType::TypeError);
+        RETURN_TYPE_ERROR_ON_MISMATCH(evaluatedExpr1, String, "open: expected argument 1 to be a string");
 
         std::string mode = "r";
         if (arguments->size() == 2)
         {
             auto evaluatedExpr2 = evalExpression((*arguments)[1].get(), environment);
-            if (evaluatedExpr2->type != obj::ObjectType::String)
-                return std::make_shared<obj::Error>("open: expected argument 2 to be a string", obj::ErrorType::TypeError);
+            RETURN_TYPE_ERROR_ON_MISMATCH(evaluatedExpr2, String, "open: expected argument 2 to be a string");
             mode = static_cast<obj::String *>(evaluatedExpr2.get())->value;
         }
 
@@ -364,7 +373,7 @@ namespace builtin
             std::vector<std::string> openModeChoices;
             for (const auto &[k, v] : openModeMapping)
                 openModeChoices.push_back(k);
-            return std::make_shared<obj::Error>("open: openmode has to be one of " + util::join(openModeChoices, ",") + ", got " + mode, obj::ErrorType::TypeError);
+            return obj::makeTypeError("open: openmode has to be one of " + util::join(openModeChoices, ",") + ", got " + mode);
         }
 
         std::ios_base::openmode openMode = openModeMapping.at(mode);
@@ -397,11 +406,10 @@ namespace builtin
             return NullObject;
 
         if (arguments->size() != 1)
-            return std::make_shared<obj::Error>("run: expected 1 argument", obj::ErrorType::TypeError);
+            return std::make_shared<obj::Error>("run: expected 1 argument of type str", obj::ErrorType::TypeError);
 
         auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
-        if (evaluatedExpr1->type != obj::ObjectType::String)
-            return std::make_shared<obj::Error>("run: expected argument 1 to be a string", obj::ErrorType::TypeError);
+        RETURN_TYPE_ERROR_ON_MISMATCH(evaluatedExpr1, String, "run: expected argument 1 to be a string");
 
         std::string fileToRun = static_cast<obj::String *>(evaluatedExpr1.get())->value;
         std::string text;
@@ -1697,6 +1705,10 @@ namespace
         auto dictionaryBuiltinType = builtin::makeBuiltinTypeDictionary();
         builtinTypes.insert_or_assign(dictionaryBuiltinType->builtinObjectType, std::move(dictionaryBuiltinType));
 
+        // IO
+        auto ioBuiltinType = builtin::makeBuiltinTypeIo();
+        builtinTypes.insert_or_assign(ioBuiltinType->builtinObjectType, std::move(ioBuiltinType));
+
         //  SET
         auto setBuiltinType = builtin::makeBuiltinTypeSet();
         builtinTypes.insert_or_assign(setBuiltinType->builtinObjectType, std::move(setBuiltinType));
@@ -1705,9 +1717,9 @@ namespace
         auto stringBuiltinType = builtin::makeBuiltinTypeString();
         builtinTypes.insert_or_assign(stringBuiltinType->builtinObjectType, std::move(stringBuiltinType));
 
-        // IO
-        auto ioBuiltinType = builtin::makeBuiltinTypeIo();
-        builtinTypes.insert_or_assign(ioBuiltinType->builtinObjectType, std::move(ioBuiltinType));
+        // THREAD
+        auto threadBuiltinType = builtin::makeBuiltinTypeThread();
+        builtinTypes.insert_or_assign(threadBuiltinType->builtinObjectType, std::move(threadBuiltinType));
     }
 
     std::unordered_map<std::string, std::shared_ptr<obj::Object>> builtins;
@@ -3021,11 +3033,21 @@ std::shared_ptr<obj::Object> evalBuiltin(obj::Builtin *builtin, std::vector<std:
     return builtin->function(arguments, environment);
 }
 
+std::shared_ptr<obj::Object> unwrap(const std::shared_ptr<obj::Object> &object)
+{
+    if (object->type == obj::ObjectType::ReturnValue)
+        return unwrap(static_cast<obj::ReturnValue *>(object.get())->value);
+    else if (object->type == obj::ObjectType::BoundBuiltinTypeProperty)
+        return unwrap(static_cast<obj::BoundBuiltinTypeProperty *>(object.get())->property->obj);
+    else if (object->type == obj::ObjectType::BoundUserTypeProperty)
+        return unwrap(static_cast<obj::BoundUserTypeProperty *>(object.get())->property->obj);
+    return object;
+}
+
 std::shared_ptr<obj::Object> unwrapReturnValue(const std::shared_ptr<obj::Object> &object)
 {
-    auto retValue = dynamic_cast<obj::ReturnValue *>(object.get());
-    if (retValue)
-        return retValue->value;
+    if (object->type == obj::ObjectType::ReturnValue)
+        return static_cast<obj::ReturnValue *>(object.get())->value;
     return object;
 }
 
@@ -3127,15 +3149,18 @@ std::shared_ptr<obj::Object> evalFunctionWithArguments(obj::Function *functionOb
         if (evaluatedArg->type == obj::ObjectType::Error)
             return evaluatedArg;
 
+        if (argumentIndex >= functionObj->arguments.size())
+            return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError);
+
+        if (argumentIndex >= functionObj->argumentTypes.size())
+            return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError);
+
         if (!typing::isCompatibleType(functionObj->argumentTypes[argumentIndex], evaluatedArg.get(), nullptr))
         {
             std::string expectedTypeStr = functionObj->argumentTypes[argumentIndex]->text();
             std::string gottenTypeStr = typing::computeType(evaluatedArg.get())->text();
             return std::make_shared<obj::Error>("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError);
         }
-
-        if (argumentIndex >= functionObj->arguments.size())
-            return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError);
 
         functionEnvironment->add(functionObj->arguments[argumentIndex].value, evaluatedArg, false, functionObj->argumentTypes[argumentIndex]);
         ++argumentIndex;
@@ -3144,7 +3169,7 @@ std::shared_ptr<obj::Object> evalFunctionWithArguments(obj::Function *functionOb
     //
     // check here the return type of the return value!
     //
-    auto retValue = unwrapReturnValue(evalStatement(functionObj->body, std::move(functionEnvironment)));
+    auto retValue = unwrap(evalStatement(functionObj->body, std::move(functionEnvironment)));
     auto desRetValue = evalUserObjectDestructors(functionEnvironment);
     if (desRetValue->type == obj::ObjectType::Error || desRetValue->type == obj::ObjectType::Exit)
         return desRetValue;
@@ -3171,6 +3196,12 @@ std::shared_ptr<obj::Object> evalCallExpression(ast::CallExpression *callExpr, c
             if (evaluatedArgs.back()->type == obj::ObjectType::Error)
                 return evaluatedArgs.back();
 
+            if (argumentIndex >= functionObj->arguments.size())
+                return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError, callExpr->token);
+
+            if (argumentIndex >= functionObj->argumentTypes.size())
+                return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError, callExpr->token);
+
             if (!typing::isCompatibleType(functionObj->argumentTypes[argumentIndex], evaluatedArgs.back().get(), nullptr))
             {
                 std::string expectedTypeStr = functionObj->argumentTypes[argumentIndex]->text();
@@ -3181,9 +3212,6 @@ std::shared_ptr<obj::Object> evalCallExpression(ast::CallExpression *callExpr, c
 
                 return std::make_shared<obj::Error>("Incompatible type for argument " + std::to_string(argumentIndex + 1) + ", expected " + expectedTypeStr + " but got " + gottenTypeStr, obj::ErrorType::TypeError, callExpr->token);
             }
-
-            if (argumentIndex >= functionObj->arguments.size())
-                return std::make_shared<obj::Error>("Too many arguments provided for function", obj::ErrorType::TypeError, callExpr->token);
 
             functionEnvironment->add(functionObj->arguments[argumentIndex].value, evaluatedArgs.back(), false, functionObj->argumentTypes[argumentIndex]);
             ++argumentIndex;

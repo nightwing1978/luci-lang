@@ -6,14 +6,14 @@
  * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
  *******************************************************************/
 
-#ifndef GUARDIAN_OF_INCLUSION_BUILTIN_REGEX_H
-#define GUARDIAN_OF_INCLUSION_BUILTIN_REGEX_H
+#ifndef GUARDIAN_OF_INCLUSION_BUILTIN_THREAD_H
+#define GUARDIAN_OF_INCLUSION_BUILTIN_THREAD_H
 
 #include "../Object.h"
 
 namespace builtin
 {
-    std::shared_ptr<obj::Module> createRegexModule();
+    std::shared_ptr<obj::BuiltinType> makeBuiltinTypeThread();
 }
 
 #endif

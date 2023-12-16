@@ -1,5 +1,14 @@
+/*******************************************************************
+ * Copyright (c) 2022-2023 TheWallSoft
+ * This file is part of the Luci Language
+ * tom@thewallsoft.com, https://github.com/nightwing1978/luci-lang
+ * See Copyright Notice in the LICENSE file or at
+ * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
+ *******************************************************************/
+
 #include "Dictionary.h"
 #include "../Typing.h"
+#include "../Util.h"
 
 namespace
 {
@@ -17,6 +26,119 @@ namespace
             return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
         return nullptr;
     }
+}
+
+namespace obj
+{
+    std::shared_ptr<Object> Dictionary::clone() const
+    {
+        TDictionaryMap values;
+        for (const auto &[k, v] : value)
+            values.insert(std::make_pair(k->clone(), v->clone()));
+        return std::make_shared<obj::Dictionary>(values);
+    };
+
+    std::string Dictionary::inspect() const
+    {
+        std::stringstream ss;
+        std::vector<std::string> pairs;
+        for (const auto &element : value)
+            pairs.push_back(util::join({element.first->inspect(), element.second->inspect()}, ":"));
+
+        ss << "{";
+        ss << util::join(pairs, ", ");
+        ss << "}";
+        return ss.str();
+    }
+
+    bool Dictionary::hashAble() const
+    {
+        if (frozen <= 0)
+            return false;
+        for (const auto &[k, v] : value)
+        {
+            if (!v->hashAble())
+                return false;
+            if (!k->hashAble())
+                return false;
+        }
+        return true;
+    };
+
+    std::size_t Dictionary::hash() const
+    {
+        if (frozen <= 0)
+            throw std::runtime_error("Cannot hash non-frozen dictionary");
+
+        std::size_t hashValue = 0;
+        for (const auto &[k, v] : value)
+        {
+            if (!k->hashAble())
+                throw std::runtime_error("Non-hashable key in dictionary");
+            if (!v->hashAble())
+                throw std::runtime_error("Non-hashable value in dictionary");
+            hashValue ^= k->hash() ^ v->hash();
+        }
+        return hashValue;
+    };
+
+    bool Dictionary::eq(const Object *other) const
+    {
+        if (other->type != obj::ObjectType::Dictionary)
+            return false;
+
+        const Dictionary *otherDict = static_cast<const obj::Dictionary *>(other);
+
+        if (value.size() != otherDict->value.size())
+            return false;
+
+        for (const auto &[k, v] : value)
+        {
+            auto otherV = otherDict->value.find(v);
+            if (otherV == otherDict->value.end())
+                return false;
+
+            if (otherV->second->type != v->type)
+                return false;
+
+            if (!otherV->second->eq(v.get()))
+                return false;
+        }
+
+        return true;
+    };
+
+    Dictionary::Dictionary(const TDictionaryMap &ivalue) : Object(ObjectType::Dictionary), value(ivalue){};
+
+    std::string DictionaryIterator::inspect() const
+    {
+        return "DictionaryIterator()";
+    }
+
+    std::shared_ptr<Object> DictionaryIterator::clone() const
+    {
+        return std::make_shared<DictionaryIterator>(dict, iterator);
+    }
+
+    bool DictionaryIterator::isValid() const
+    {
+        if (!dict)
+            return false;
+        return iterator != dict->value.end();
+    };
+
+    std::shared_ptr<Object> DictionaryIterator::next()
+    {
+        if (isValid())
+        {
+            auto value = iterator->first;
+            ++iterator;
+            return value;
+        }
+        return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
+    }
+
+    DictionaryIterator::DictionaryIterator(std::shared_ptr<Dictionary> idict, TDictionaryMap::iterator iiterator) : Iterator(), dict(idict), freezer(idict), iterator(iiterator){};
 }
 
 namespace builtin

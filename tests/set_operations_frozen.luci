@@ -3,8 +3,10 @@ import test_help;
 test_help::test_eq( { "0", "1" } , { "0", "1" }, "set ==");
 test_help::test_eq( { "0", "1", freeze([1,2]) } , { "1", "0", freeze([1,2]) }, "set ==");
 
+let e = freeze({"2","3"});
+let f = { 0, e, 1 };
 let c = { 0, freeze({ "0", "1"}), 1 };
 let d = { 0, freeze({ "1", "0"}), 1 };
-test_help::test_eq( c , d, "dictionary ==");
-test_help::test_neq( a, d, "dictionary !=");
+test_help::test_eq( c , d, "set of set ==");
+test_help::test_neq( f, d, "set of set !=");
 

@@ -1,3 +1,11 @@
+/*******************************************************************
+ * Copyright (c) 2022-2023 TheWallSoft
+ * This file is part of the Luci Language
+ * tom@thewallsoft.com, https://github.com/nightwing1978/luci-lang
+ * See Copyright Notice in the LICENSE file or at
+ * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
+ *******************************************************************/
+
 #ifndef GUARDIAN_OF_INCLUSION_OBJECT_H
 #define GUARDIAN_OF_INCLUSION_OBJECT_H
 
@@ -263,63 +271,37 @@ namespace obj
     struct ArrayDouble : public Object
     {
         std::vector<double> value;
-        static std::shared_ptr<Object> valueConstruct(const double &value) { return std::make_shared<Double>(value); }
+        static std::shared_ptr<Object> valueConstruct(const double &value);
 
         virtual std::string inspect() const override;
-        virtual std::shared_ptr<Object> clone() const override
-        {
-            return std::make_shared<obj::ArrayDouble>(value);
-        };
-        virtual bool eq(const Object *other) const { return static_cast<const obj::ArrayDouble *>(other)->value == value; };
-        ArrayDouble(const std::vector<double> &ivalue) : Object(ObjectType::ArrayDouble), value(ivalue){};
+        virtual std::shared_ptr<Object> clone() const override;
+        virtual bool eq(const Object *other) const;
+        ArrayDouble(const std::vector<double> &ivalue);
     };
 
     struct ArrayComplex : public Object
     {
         std::vector<std::complex<double>> value;
-        static std::shared_ptr<Object> valueConstruct(const std::complex<double> &value) { return std::make_shared<Complex>(value); }
+        static std::shared_ptr<Object> valueConstruct(const std::complex<double> &value);
 
         virtual std::string inspect() const override;
-        virtual std::shared_ptr<Object> clone() const override
-        {
-            return std::make_shared<ArrayComplex>(value);
-        };
-        virtual bool eq(const Object *other) const { return static_cast<const ArrayComplex *>(other)->value == value; };
-        ArrayComplex(const std::vector<std::complex<double>> &ivalue) : Object(ObjectType::ArrayComplex), value(ivalue){};
+        virtual std::shared_ptr<Object> clone() const override;
+        virtual bool eq(const Object *other) const;
+        ArrayComplex(const std::vector<std::complex<double>> &ivalue);
     };
 
     struct Array : public Object
     {
         std::vector<std::shared_ptr<Object>> value;
-        static std::shared_ptr<obj::Object> valueConstruct(std::shared_ptr<Object> obj) { return obj; }
+        static std::shared_ptr<obj::Object> valueConstruct(std::shared_ptr<Object> obj);
 
         virtual std::string inspect() const override;
-        virtual std::shared_ptr<Object> clone() const override
-        {
-            std::vector<std::shared_ptr<Object>> values;
-            for (const auto &v : value)
-                values.push_back(v->clone());
-            return std::make_shared<obj::Array>(values);
-        };
-        virtual bool eq(const Object *other) const override
-        {
-            const obj::Array *otherArray = static_cast<const obj::Array *>(other);
-            if (value.size() != otherArray->value.size())
-                return false;
+        virtual std::shared_ptr<Object> clone() const override;
+        virtual bool eq(const Object *other) const override;
+        virtual bool hashAble() const override;
+        virtual std::size_t hash() const override;
 
-            for (size_t i = 0; i < value.size(); ++i)
-            {
-                if (value[i]->type != otherArray->value[i]->type)
-                    return false;
-
-                if (!value[i]->eq(otherArray->value[i].get()))
-                    return false;
-            }
-            return true;
-        };
-        virtual bool hashAble() const override { return frozen > 0; };
-
-        Array(const std::vector<std::shared_ptr<Object>> &ivalue) : Object(ObjectType::Array), value(ivalue){};
+        Array(const std::vector<std::shared_ptr<Object>> &ivalue);
         Array(const std::vector<double> &ivalue);
         Array(const std::vector<std::complex<double>> &ivalue);
     };
@@ -339,7 +321,10 @@ namespace obj
         {
             return std::make_shared<obj::ArrayIterator<TArrayType>>(array, index);
         }
-        virtual bool isValid() const override { return index < array->value.size(); };
+        virtual bool isValid() const override
+        {
+            return index < array->value.size();
+        };
         virtual std::shared_ptr<Object> next() override
         {
             if (isValid())
@@ -365,7 +350,10 @@ namespace obj
         {
             return std::make_shared<RangeIterator>(rangeObj, current);
         }
-        virtual bool isValid() const { return current < rangeObj->upper; };
+        virtual bool isValid() const
+        {
+            return current < rangeObj->upper;
+        };
         virtual std::shared_ptr<Object> next() override
         {
             if (isValid())
@@ -439,29 +427,11 @@ namespace obj
     {
         TDictionaryMap value;
         virtual std::string inspect() const override;
-        virtual std::shared_ptr<Object> clone() const override
-        {
-            TDictionaryMap values;
-            for (const auto &[k, v] : value)
-                values.insert(std::make_pair(k->clone(), v->clone()));
-            return std::make_shared<obj::Dictionary>(values);
-        };
-        Dictionary(const TDictionaryMap &ivalue) : Object(ObjectType::Dictionary), value(ivalue){};
-    };
-
-    typedef std::unordered_set<std::shared_ptr<Object>, obj::Hash, obj::Equal> TSetSet;
-    struct Set : public Object
-    {
-        TSetSet value;
-        virtual std::string inspect() const override;
-        virtual std::shared_ptr<Object> clone() const override
-        {
-            TSetSet values;
-            for (const auto &k : value)
-                values.insert(k->clone());
-            return std::make_shared<obj::Set>(values);
-        };
-        Set(const TSetSet &ivalue) : Object(ObjectType::Set), value(ivalue){};
+        virtual std::shared_ptr<Object> clone() const override;
+        virtual bool hashAble() const override;
+        virtual std::size_t hash() const override;
+        virtual bool eq(const Object *other) const override;
+        Dictionary(const TDictionaryMap &ivalue);
     };
 
     struct DictionaryIterator : public Iterator
@@ -470,31 +440,23 @@ namespace obj
         ObjectFreezer freezer;
         TDictionaryMap::iterator iterator;
 
-        virtual std::string inspect() const override
-        {
-            return "DictionaryIterator()";
-        }
-        virtual std::shared_ptr<Object> clone() const override
-        {
-            return std::make_shared<DictionaryIterator>(dict, iterator);
-        }
-        virtual bool isValid() const override
-        {
-            if (!dict)
-                return false;
-            return iterator != dict->value.end();
-        };
-        virtual std::shared_ptr<Object> next() override
-        {
-            if (isValid())
-            {
-                auto value = iterator->first;
-                ++iterator;
-                return value;
-            }
-            return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
-        }
-        DictionaryIterator(std::shared_ptr<Dictionary> idict, TDictionaryMap::iterator iiterator) : Iterator(), dict(idict), freezer(idict), iterator(iiterator){};
+        virtual std::string inspect() const override;
+        virtual std::shared_ptr<Object> clone() const override;
+        virtual bool isValid() const override;
+        virtual std::shared_ptr<Object> next() override;
+        DictionaryIterator(std::shared_ptr<Dictionary> idict, TDictionaryMap::iterator iiterator);
+    };
+
+    typedef std::unordered_set<std::shared_ptr<Object>, obj::Hash, obj::Equal> TSetSet;
+    struct Set : public Object
+    {
+        TSetSet value;
+        virtual std::string inspect() const override;
+        virtual std::shared_ptr<Object> clone() const override;
+        virtual bool hashAble() const override;
+        virtual std::size_t hash() const override;
+        virtual bool eq(const Object *other) const override;
+        Set(const TSetSet &ivalue);
     };
 
     struct SetIterator : public Iterator
@@ -503,31 +465,11 @@ namespace obj
         ObjectFreezer freezer;
         TSetSet::iterator iterator;
 
-        virtual std::string inspect() const override
-        {
-            return "SetIterator()";
-        }
-        virtual std::shared_ptr<Object> clone() const override
-        {
-            return std::make_shared<SetIterator>(setObj, iterator);
-        }
-        virtual bool isValid() const override
-        {
-            if (!setObj)
-                return false;
-            return iterator != setObj->value.end();
-        };
-        virtual std::shared_ptr<Object> next() override
-        {
-            if (isValid())
-            {
-                auto value = *iterator;
-                ++iterator;
-                return value;
-            }
-            return std::make_shared<obj::Error>("next referencing invalid iterator", obj::ErrorType::TypeError);
-        }
-        SetIterator(std::shared_ptr<Set> iset, TSetSet::iterator iiterator) : Iterator(), setObj(iset), freezer(iset), iterator(iiterator){};
+        virtual std::string inspect() const override;
+        virtual std::shared_ptr<Object> clone() const override;
+        virtual bool isValid() const override;
+        virtual std::shared_ptr<Object> next() override;
+        SetIterator(std::shared_ptr<Set> iset, TSetSet::iterator iiterator);
     };
 
     struct Function : public Object
@@ -715,6 +657,7 @@ namespace obj
     {
         std::shared_ptr<std::thread> thread;
         std::shared_ptr<Function> function;
+        std::shared_ptr<Object> argument;
         std::shared_ptr<Object> functionReturnValue;
 
         virtual std::string inspect() const override;

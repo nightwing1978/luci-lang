@@ -1,5 +1,14 @@
+/*******************************************************************
+ * Copyright (c) 2022-2023 TheWallSoft
+ * This file is part of the Luci Language
+ * tom@thewallsoft.com, https://github.com/nightwing1978/luci-lang
+ * See Copyright Notice in the LICENSE file or at
+ * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
+ *******************************************************************/
+
 #include "Array.h"
 #include "../Typing.h"
+#include "../Util.h"
 #include <algorithm>
 
 namespace
@@ -17,6 +26,164 @@ namespace
             return std::make_shared<obj::Error>(errorPrefix + ": expected " + std::to_string(nrExpectedArguments) + " arguments, got " + std::to_string(arguments.size()), obj::ErrorType::TypeError);
         return nullptr;
     }
+}
+
+namespace obj
+{
+    std::shared_ptr<Object> ArrayDouble::valueConstruct(const double &value)
+    {
+        return std::make_shared<Double>(value);
+    }
+
+    std::string ArrayDouble::inspect() const
+    {
+        std::stringstream ss;
+        std::vector<std::string> elements;
+        for (const auto &element : value)
+            elements.push_back(std::to_string(element));
+
+        ss << "[";
+        ss << util::join(elements, ", ");
+        ss << "]";
+        return ss.str();
+    }
+
+    std::shared_ptr<Object> ArrayDouble::clone() const
+    {
+        return std::make_shared<obj::ArrayDouble>(value);
+    };
+
+    bool ArrayDouble::eq(const Object *other) const
+    {
+        return static_cast<const obj::ArrayDouble *>(other)->value == value;
+    };
+
+    ArrayDouble::ArrayDouble(const std::vector<double> &ivalue) : Object(ObjectType::ArrayDouble), value(ivalue){};
+
+    std::shared_ptr<Object> ArrayComplex::valueConstruct(const std::complex<double> &value)
+    {
+        return std::make_shared<Complex>(value);
+    }
+
+    std::string ArrayComplex::inspect() const
+    {
+        std::stringstream ss;
+        std::vector<std::string> elements;
+        for (const auto &element : value)
+            elements.push_back(std::to_string(element.real()) + "+" + std::to_string(element.imag()) + "j");
+
+        ss << "[";
+        ss << util::join(elements, ", ");
+        ss << "]";
+        return ss.str();
+    }
+
+    std::shared_ptr<Object> ArrayComplex::clone() const
+    {
+        return std::make_shared<ArrayComplex>(value);
+    };
+
+    bool ArrayComplex::eq(const Object *other) const
+    {
+        return static_cast<const ArrayComplex *>(other)->value == value;
+    };
+
+    ArrayComplex::ArrayComplex(const std::vector<std::complex<double>> &ivalue) : Object(ObjectType::ArrayComplex), value(ivalue){};
+
+    std::shared_ptr<obj::Object> Array::valueConstruct(std::shared_ptr<Object> obj)
+    {
+        return obj;
+    }
+
+    std::string Array::inspect() const
+    {
+        std::stringstream ss;
+        std::vector<std::string> elements;
+        for (const auto &element : value)
+        {
+            if (element)
+                elements.push_back(element->inspect());
+            else
+                elements.push_back("<Null>");
+        }
+
+        ss << "[";
+        ss << util::join(elements, ", ");
+        ss << "]";
+        return ss.str();
+    }
+
+    std::shared_ptr<Object> Array::clone() const
+    {
+        std::vector<std::shared_ptr<Object>> values;
+        for (const auto &v : value)
+            values.push_back(v->clone());
+        return std::make_shared<obj::Array>(values);
+    };
+
+    bool Array::eq(const Object *other) const
+    {
+        if (other->type != obj::ObjectType::Array)
+            return false;
+
+        const obj::Array *otherArray = static_cast<const obj::Array *>(other);
+        if (value.size() != otherArray->value.size())
+            return false;
+
+        for (size_t i = 0; i < value.size(); ++i)
+        {
+            if (value[i]->type != otherArray->value[i]->type)
+                return false;
+
+            if (!value[i]->eq(otherArray->value[i].get()))
+                return false;
+        }
+        return true;
+    };
+
+    bool Array::hashAble() const
+    {
+        if (frozen <= 0)
+            return false;
+        for (const auto &v : value)
+        {
+            if (!v->hashAble())
+                return false;
+        }
+        return true;
+    };
+
+    std::size_t Array::hash() const
+    {
+        if (frozen <= 0)
+            throw std::runtime_error("Cannot hash non-frozen array");
+
+        std::size_t hashValue = 0;
+        for (const auto &v : value)
+        {
+            if (!v->hashAble())
+                throw std::runtime_error("Non-hashable item in array");
+            hashValue ^= v->hash();
+        }
+        return hashValue;
+    };
+
+    Array::Array(const std::vector<std::shared_ptr<Object>> &ivalue) : Object(ObjectType::Array), value(ivalue){};
+
+    Array::Array(const std::vector<double> &ivalue) : Object(ObjectType::Array)
+    {
+        value.reserve(ivalue.size() + 1);
+        for (const auto &element : ivalue)
+            value.push_back(std::make_shared<obj::Double>(element));
+    };
+
+    Array::Array(const std::vector<std::complex<double>> &ivalue) : Object(ObjectType::Array)
+    {
+        value.reserve(ivalue.size() + 1);
+        for (const auto &element : ivalue)
+            value.push_back(std::make_shared<obj::Complex>(element));
+    };
+
 }
 
 namespace builtin
@@ -358,5 +525,4 @@ namespace builtin
 
         return arrayTypes;
     }
-
 }

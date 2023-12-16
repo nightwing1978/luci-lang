@@ -1,3 +1,11 @@
+/*******************************************************************
+ * Copyright (c) 2022-2023 TheWallSoft
+ * This file is part of the Luci Language
+ * tom@thewallsoft.com, https://github.com/nightwing1978/luci-lang
+ * See Copyright Notice in the LICENSE file or at
+ * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
+ *******************************************************************/
+
 #include "Object.h"
 #include "Util.h"
 
@@ -178,94 +186,10 @@ namespace obj
         return ret;
     }
 
-    std::string Array::inspect() const
-    {
-        std::stringstream ss;
-        std::vector<std::string> elements;
-        for (const auto &element : value)
-        {
-            if (element)
-                elements.push_back(element->inspect());
-            else
-                elements.push_back("<Null>");
-        }
-
-        ss << "[";
-        ss << util::join(elements, ", ");
-        ss << "]";
-        return ss.str();
-    }
-
-    Array::Array(const std::vector<double> &ivalue) : Object(ObjectType::Array)
-    {
-        value.reserve(ivalue.size() + 1);
-        for (const auto &element : ivalue)
-            value.push_back(std::make_shared<obj::Double>(element));
-    };
-
-    Array::Array(const std::vector<std::complex<double>> &ivalue) : Object(ObjectType::Array)
-    {
-        value.reserve(ivalue.size() + 1);
-        for (const auto &element : ivalue)
-            value.push_back(std::make_shared<obj::Complex>(element));
-    };
-
-    std::string ArrayDouble::inspect() const
-    {
-        std::stringstream ss;
-        std::vector<std::string> elements;
-        for (const auto &element : value)
-            elements.push_back(std::to_string(element));
-
-        ss << "[";
-        ss << util::join(elements, ", ");
-        ss << "]";
-        return ss.str();
-    }
-
-    std::string ArrayComplex::inspect() const
-    {
-        std::stringstream ss;
-        std::vector<std::string> elements;
-        for (const auto &element : value)
-            elements.push_back(std::to_string(element.real()) + "+" + std::to_string(element.imag()) + "j");
-
-        ss << "[";
-        ss << util::join(elements, ", ");
-        ss << "]";
-        return ss.str();
-    }
-
     std::string Iterator::inspect() const
     {
         std::stringstream ss;
         ss << "Iterator()";
-        return ss.str();
-    }
-
-    std::string Dictionary::inspect() const
-    {
-        std::stringstream ss;
-        std::vector<std::string> pairs;
-        for (const auto &element : value)
-            pairs.push_back(util::join({element.first->inspect(), element.second->inspect()}, ":"));
-
-        ss << "{";
-        ss << util::join(pairs, ", ");
-        ss << "}";
-        return ss.str();
-    }
-
-    std::string Set::inspect() const
-    {
-        std::stringstream ss;
-        std::vector<std::string> elements;
-        for (const auto &element : value)
-            elements.push_back(element->inspect());
-
-        ss << "{";
-        ss << util::join(elements, ", ");
-        ss << "}";
         return ss.str();
     }
 
@@ -553,50 +477,7 @@ namespace obj
         fStream->write(bytes.data(), bytes.size());
     }
 
-    Thread::Thread() : Object(ObjectType::Thread)
-    {
-    }
-
-    Thread::~Thread()
-    {
-    }
-
-    void Thread::join()
-    {
-        if (thread)
-            thread->join();
-    }
-
-    void Thread::run()
-    {
-        auto environment = std::make_shared<obj::Environment>();
-        environment->outer = function->environment;
-        functionReturnValue = eval(function->body, environment);
-    }
-
-    void Thread::start()
-    {
-        if (thread)
-        {
-            throw std::runtime_error("Cannot start thread twice");
-        }
-
-        thread.reset(new std::thread(&Thread::run, this));
-    }
-
-    bool Thread::joinable() const
-    {
-        if (thread)
-            return thread->joinable();
-        return true;
-    }
-
-    std::string Thread::inspect() const
-    {
-        return "<thread>";
-    }
-
-    Regex::Regex(const std::regex &re) : Object(ObjectType::Regex)
+        Regex::Regex(const std::regex &re) : Object(ObjectType::Regex)
     {
         regex = std::make_shared<std::regex>(re);
     }

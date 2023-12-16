@@ -1,3 +1,11 @@
+/*******************************************************************
+ * Copyright (c) 2022-2023 TheWallSoft
+ * This file is part of the Luci Language
+ * tom@thewallsoft.com, https://github.com/nightwing1978/luci-lang
+ * See Copyright Notice in the LICENSE file or at
+ * https://github.com/nightwing1978/luci-lang/blob/main/LICENSE
+ *******************************************************************/
+
 #include "Lexer.h"
 
 #include <stdexcept>
@@ -241,7 +249,7 @@ Token readSingleLineDocToken(Lexer &lexer)
         readChar(lexer);
     }
     int carrierOffset = 0;
-    if (lexer.position>0 && lexer.input[lexer.position-1]=='\r')
+    if (lexer.position > 0 && lexer.input[lexer.position - 1] == '\r')
         carrierOffset = 1;
     token.literal = lexer.input.substr(position, lexer.position - position - carrierOffset);
     token.type = TokenType::DOC;

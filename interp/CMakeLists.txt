@@ -61,6 +61,8 @@ add_library(luciLib
     "builtin/String.cpp"
     "builtin/Freeze.h"
     "builtin/Freeze.cpp"
+    "builtin/Thread.h"
+    "builtin/Thread.cpp"
     "builtin/Threading.h"
     "builtin/Threading.cpp"
 )

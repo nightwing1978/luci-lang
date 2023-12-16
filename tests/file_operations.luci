@@ -7,6 +7,5 @@ test_help::test_eq(f.tell(), 4, "file.tell");
 f.close();
 
 test_help::test_eq(f.is_open(), false, "file.is_open");
-
-print(type_str(f));
+test_help::test_eq(type_str(f), "io", "type_str==io");
 
