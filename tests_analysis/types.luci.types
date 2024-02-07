@@ -1,0 +1,9 @@
+[1] a : any <verified>
+[2] b : all <verified>
+[3] c : double <verified>
+[4] d : <double, int> <verified>
+[5] e : [double] <verified>
+[6] f : {all:all} <verified>
+[7] g : {all:<double, int>} <verified>
+[8] h : <bool, int, double, str, [any], {any:any}> <verified>
+[9] i : <null, [[double]]> <verified>

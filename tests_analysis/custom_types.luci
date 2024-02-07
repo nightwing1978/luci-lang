@@ -1,0 +1,15 @@
+let c = "";
+
+type point 
+{
+    x : double = 0.0;
+    y = 0;
+    z = fn() { return 5.0; };
+    w = fn() { return c; }
+};
+
+let a = point;
+let p = point();
+let x = p.x;
+let y = p.y;
+let z = p.z();

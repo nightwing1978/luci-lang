@@ -70,7 +70,10 @@ namespace ast
     {
         std::stringstream ss;
         ss << "[";
-        ss << elementType->text();
+        if (elementType)
+            ss << elementType->text();
+        else
+            ss << "unknown";
         ss << "]";
         return ss.str();
     };
@@ -105,7 +108,10 @@ namespace ast
         ss << "fn(";
         ss << util::join(args, ",");
         ss << ") -> ";
-        ss << returnType->text();
+        if (returnType)
+            ss << returnType->text();
+        else
+            ss << "unknown";
         return ss.str();
     };
 
@@ -141,6 +147,11 @@ namespace ast
     std::string IntegerLiteral::text(int indent) const
     {
         return indentation(indent) + token.literal;
+    };
+
+    std::string RangeLiteral::text(int indent) const
+    {
+        return indentation(indent) + std::to_string(lower) + ".." + std::to_string(upper) + ":" + std::to_string(stride);
     };
 
     std::string DoubleLiteral::text(int indent) const
@@ -376,6 +387,13 @@ namespace ast
     }
 
     std::string BreakStatement::text(int indent) const
+    {
+        std::stringstream ss;
+        ss << indentation(indent) << tokenLiteral() << ";";
+        return ss.str();
+    }
+
+    std::string ContinueStatement::text(int indent) const
     {
         std::stringstream ss;
         ss << indentation(indent) << tokenLiteral() << ";";

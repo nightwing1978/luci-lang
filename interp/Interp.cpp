@@ -72,12 +72,13 @@ void usage(int argc, char **argv)
 {
     std::cout << argv[0] << "\n";
     std::cout << "Usage: \n";
-    std::cout << argv[0] << " [-i] [-s] [-v] [file_name]\n";
+    std::cout << argv[0] << " [-i] [-s] [-v] [file_name] [arg1 .. argN]\n";
     std::cout << "  -i			enter interactive mode after running the provided file_name\n";
     std::cout << "  -s			print statistics\n";
     std::cout << "  -v			print version\n";
     std::cout << "  -h			show this usage\n";
     std::cout << "  file_name	run the given file_name, when none given, enter interactive mode\n";
+    std::cout << "  arg1..argN	the arguments to pass to the interpreter\n";
 }
 
 std::string compilerName()
@@ -130,8 +131,8 @@ try
     std::string fileToRun = "";
 
     initialize();
-    initializeArg(argc, argv);
     auto environment = std::make_shared<obj::Environment>();
+    int offset = 0;
     int returnValue = 2;
     if (argc == 1)
     {
@@ -162,9 +163,13 @@ try
             else
             {
                 fileToRun = std::string(argv[i]);
+                offset = i - 1;
+                break;
             }
         }
     }
+
+    initializeArg(offset, argc, argv);
 
     if (!fileToRun.empty())
     {
@@ -204,24 +209,31 @@ try
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double, std::milli> elapsed = end - start;
                 cumulativeTime += elapsed.count();
-                if (object->type == obj::ObjectType::Exit)
+                if (!object)
                 {
-                    auto exitObj = dynamic_cast<obj::Exit *>(object.get());
-                    if (!exitObj)
-                        returnValue = -1;
-                    else
-                        returnValue = exitObj->value;
+                    returnValue = 1;
                 }
                 else
                 {
-                    if (object->type == obj::ObjectType::Error)
-                        std::cerr << util::color::colorize(object->inspect(), util::color::fg::red) << std::endl;
-                    else if (object->type != obj::ObjectType::Null)
-                        std::cout << object->inspect() << std::endl;
-                    if (object->type == obj::ObjectType::Error)
-                        returnValue = 1;
+                    if (object->type == obj::ObjectType::Exit)
+                    {
+                        auto exitObj = dynamic_cast<obj::Exit *>(object.get());
+                        if (!exitObj)
+                            returnValue = -1;
+                        else
+                            returnValue = exitObj->value;
+                    }
                     else
-                        returnValue = 0;
+                    {
+                        if (object->type == obj::ObjectType::Error)
+                            std::cerr << util::color::colorize(object->inspect(), util::color::fg::red) << std::endl;
+                        else if (object->type != obj::ObjectType::Null)
+                            std::cout << object->inspect() << std::endl;
+                        if (object->type == obj::ObjectType::Error)
+                            returnValue = 1;
+                        else
+                            returnValue = 0;
+                    }
                 }
             }
         }

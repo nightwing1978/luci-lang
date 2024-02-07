@@ -1,0 +1,4 @@
+[1] a : fn() -> int
+[6] b : int
+[8] c : fn(int) -> null
+[10] d : int

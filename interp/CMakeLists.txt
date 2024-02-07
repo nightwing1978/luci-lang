@@ -49,6 +49,8 @@ add_library(luciLib
     "builtin/ErrorType.cpp"
     "builtin/IO.h"
     "builtin/IO.cpp"
+    "builtin/Json.h"
+    "builtin/Json.cpp"
     "builtin/Math.h"
     "builtin/Math.cpp"
     "builtin/OS.h"
@@ -61,10 +63,16 @@ add_library(luciLib
     "builtin/String.cpp"
     "builtin/Freeze.h"
     "builtin/Freeze.cpp"
+    "builtin/Time.h"
+    "builtin/Time.cpp"
     "builtin/Thread.h"
     "builtin/Thread.cpp"
     "builtin/Threading.h"
     "builtin/Threading.cpp"
+    "builtin/Typing.h"
+    "builtin/Typing.cpp"
+    "format/Format.h"
+    "format/Format.cpp"
 )
 
 
@@ -87,7 +95,7 @@ add_executable (luci
 )
 target_link_libraries(luci luciLib ParseLib LexLib UtilLib)
 
-add_executable (luci_analyse 
+add_executable (luci_analyze 
     "Analyze.cpp" 
 )
-target_link_libraries(luci_analyse ParseLib LexLib UtilLib)
+target_link_libraries(luci_analyze luciLib ParseLib LexLib UtilLib)

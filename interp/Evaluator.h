@@ -28,7 +28,7 @@ std::shared_ptr<obj::Object> evalFunctionWithArguments(obj::Function *functionOb
 /* initialize the internal structures from the outside environment
  * so that the interpreter can return arg when requested
  */
-void initializeArg(int argc, char **argv);
+void initializeArg(int offset, int argc, char **argv);
 
 /* perform initialization tasks, such as populating the
  * internal types and built-in functions
@@ -39,6 +39,9 @@ void initialize();
  * internal types and built-in functions
  */
 void finalize();
+
+/* for typing support builtins are exposed */
+std::shared_ptr<obj::Object> getBuiltin(const std::string &name);
 
 /* shared NullObject that can be pointed to instead of being re-allocated all the time*/
 extern std::shared_ptr<obj::Object> NullObject;

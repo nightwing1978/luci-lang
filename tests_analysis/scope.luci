@@ -1,0 +1,5 @@
+let a = 0;
+scope {
+    let a = 5.0;
+}
+let b = 1 + a;

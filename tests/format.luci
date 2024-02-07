@@ -1,0 +1,16 @@
+import test_help;
+
+format("{:*<10.3f}", 1.23456789);
+
+test_help::test_eq( format("{0:*>10.3f}", 3.5), "*****3.500",  "double : *>10.3f");
+test_help::test_eq( format("{0:*<10.3f}", 3.5), "3.500*****",  "double : *<10.3f");
+test_help::test_eq( format("{0:*^10.3f}", 3.5), "**3.500***",  "double : *^10.3f");
+test_help::test_eq( format("{0:<10.3f}", 3.5),  "3.500     ",  "double : <10.3f");
+
+test_help::test_eq( format("{0:.3}", 1.0), "1.000",  "double :.3");
+test_help::test_eq( format("{0:.0}", 1.0), "1",  "double :.0");
+test_help::test_eq( format("{0:5.3f}", 1.23456789), "1.235",  "double :5.3f");
+test_help::test_eq( format("{0:015.3f}", 1.23456789), "00000000001.235",  "double :015.3f");
+test_help::test_eq( format("{0: 15.3f}", 1.23456789), "          1.235",  "double : 15.3f");
+
+test_help::test_eq( format("{}", 1), "1",  "int");

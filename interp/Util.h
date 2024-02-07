@@ -47,6 +47,7 @@ namespace util
     }
 
     std::string withEllipsis(const std::string &input, size_t max_length);
+    std::string removeNewLines(const std::string &input);
 }
 
 #endif

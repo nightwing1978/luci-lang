@@ -19,6 +19,31 @@ namespace typing
         bool operator()(ast::TypeExpression *a, ast::TypeExpression *b) const;
     };
 
+    struct AnalysisContext
+    {
+        std::map<std::string, std::unique_ptr<ast::TypeExpression>> context;
+        std::map<std::string, ast::TypeLiteral *> typeContext;
+        std::shared_ptr<AnalysisContext> outer;
+
+        ast::TypeExpression *findType(const std::string &name) const;
+        ast::TypeLiteral *findTypeDefinition(const std::string &name) const;
+    };
+
+    /* compute the type of an expression in the AST, without tracing
+     * Returns the most specific type possible.
+     * For instance let a = [3, 2.0] will give [<int, double>]
+     */
+    std::unique_ptr<ast::TypeExpression> computeType(ast::Node *node, std::shared_ptr<AnalysisContext> context);
+
+    /* compute the return type for a block statement, like occurs
+     * in function literals
+     */
+    std::unique_ptr<ast::TypeExpression> computeReturnType(ast::BlockStatement *node, std::shared_ptr<AnalysisContext> context, bool lastStatementIsImplicitReturn);
+
+    /* compute the type when indexed into an expression */
+    std::unique_ptr<ast::TypeExpression> computeIndexedType(ast::TypeExpression *type, std::shared_ptr<AnalysisContext> context);
+
+    /* compute the type of an object */
     std::unique_ptr<ast::TypeExpression> computeType(obj::Object *obj);
 
     /* returns true when type1 is compatible with type2

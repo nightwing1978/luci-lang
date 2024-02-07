@@ -16,7 +16,6 @@
 #include <string>
 #include <unordered_set>
 #include <filesystem>
-#include <ranges>
 
 #include "Lexer.h"
 #include "Parser.h"
@@ -28,14 +27,18 @@
 #include "builtin/Error.h"
 #include "builtin/ErrorType.h"
 #include "builtin/IO.h"
+#include "builtin/Json.h"
 #include "builtin/Math.h"
 #include "builtin/OS.h"
 #include "builtin/Regex.h"
 #include "builtin/Set.h"
 #include "builtin/String.h"
 #include "builtin/Freeze.h"
+#include "builtin/Time.h"
 #include "builtin/Thread.h"
 #include "builtin/Threading.h"
+#include "builtin/Typing.h"
+#include "format/Format.h"
 
 std::shared_ptr<obj::Object> evalStatement(ast::Statement *statement, const std::shared_ptr<obj::Environment> &environment);
 std::shared_ptr<obj::Object> evalFunctionWithArguments(obj::Function *functionObj, const std::vector<std::shared_ptr<obj::Object>> &evaluatedArgs, const std::shared_ptr<obj::Environment> &environment);
@@ -133,9 +136,9 @@ namespace
 
 }
 
-void initializeArg(int argc, char **argv)
+void initializeArg(int offset, int argc, char **argv)
 {
-    for (int i = 0; i < argc; ++i)
+    for (int i = offset; i < argc; ++i)
         argsFromEnvironment.push_back(std::string(argv[i]));
 }
 
@@ -300,6 +303,114 @@ namespace builtin
     std::shared_ptr<obj::Object> eprint(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
     {
         return print_impl(arguments, environment, std::cerr);
+    }
+
+    std::shared_ptr<obj::Object>
+    format(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
+    {
+        /*
+         * format( " {0:5.2f} {1:.1f} ", a, b);
+         * future (but more difficult in a compilation scenario, due to variable scoping rules): format( " {a:05.2f} ", a);
+         * format type:
+         *      fill-and-align (optional) sign (optional) #(optional) 0(optional) width (optional) precision (optional) L(optional) type (optional)
+         */
+
+        if (!arguments)
+            return NullObject;
+
+        if (arguments->size() < 1)
+            return obj::makeTypeError("format: expected at least 1 of type str");
+
+        auto evaluatedExpr1 = evalExpression(arguments->front().get(), environment);
+        RETURN_TYPE_ERROR_ON_MISMATCH(evaluatedExpr1, String, "format: expected argument 1 to be a string");
+
+        auto format = static_cast<obj::String *>(evaluatedExpr1.get())->value;
+        std::vector<std::shared_ptr<obj::Object>> values;
+
+        for (size_t i = 1; i < arguments->size(); ++i)
+        {
+            auto value = evalExpression((*arguments)[i].get(), environment);
+            if (value->type == obj::ObjectType::Error)
+                return value;
+
+            values.push_back(value);
+        }
+
+        size_t formatIndex = 0;
+        size_t valueIndex = 0;
+        std::stringstream result;
+
+        while (formatIndex < format.size())
+        {
+            if (format[formatIndex] == '{')
+            {
+                // Find the end of the placeholder
+                size_t endBraceIndex = format.find('}', formatIndex);
+                if (endBraceIndex == std::string::npos)
+                {
+                    return std::make_shared<obj::Error>("Missing closing brace", obj::ErrorType::ValueError);
+                }
+
+                auto placeHolderFormat = format.substr(formatIndex + 1, endBraceIndex - formatIndex - 1);
+                std::string formatStr = "";
+
+                // check if the placeholder format refers to an index, a variable or is left default and empty
+                // a special case is also the empty placeholder format
+
+                auto referencedValue = valueIndex;
+                if (!placeHolderFormat.empty())
+                {
+                    auto isInteger = [](const std::string &s) -> bool
+                    {
+                        return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+                    };
+
+                    // the start until the ':' is either the index or a variable name
+                    size_t doubleColonIndex = placeHolderFormat.find(':');
+                    if (doubleColonIndex != std::string::npos)
+                    {
+                        auto referenceStr = placeHolderFormat.substr(0, doubleColonIndex);
+
+                        if (!referenceStr.empty())
+                        {
+                            if (isInteger(referenceStr))
+                                referencedValue = std::atoi(referenceStr.c_str());
+                            else
+                                return std::make_shared<obj::Error>("Referenced value is not an integer", obj::ErrorType::ValueError);
+                        }
+                        // what comes after the ':' is the format string
+                        formatStr = placeHolderFormat.substr(doubleColonIndex + 1);
+                    }
+                    else
+                    {
+                        if (isInteger(placeHolderFormat))
+                            referencedValue = std::atoi(placeHolderFormat.c_str());
+                        else
+                            return std::make_shared<obj::Error>("Referenced value is not an integer", obj::ErrorType::ValueError);
+                    }
+                }
+
+                if (referencedValue >= values.size())
+                    return std::make_shared<obj::Error>("Referenced value out of range", obj::ErrorType::IndexError);
+
+                // parse the formatStr into the Formatting structure to pass later into a proper formatting function
+
+                auto formatting = builtin::parseFormatting(formatStr);
+                if (!formatting.error.empty())
+                    return std::make_shared<obj::Error>("Format string malformed: " + formatting.error, obj::ErrorType::ValueError);
+                result << builtin::format_impl(values[referencedValue].get(), formatting);
+
+                // move to the character after the closing brace
+                formatIndex = endBraceIndex + 1;
+                ++valueIndex;
+            }
+            else
+            {
+                // Copy non-placeholder characters to the result
+                result << format[formatIndex++];
+            }
+        }
+        return std::make_shared<obj::String>(result.str());
     }
 
     std::shared_ptr<obj::Object> input_line(const std::vector<std::unique_ptr<ast::Expression>> *arguments, const std::shared_ptr<obj::Environment> &environment)
@@ -1674,6 +1785,10 @@ namespace
         auto mathBuiltinModule = builtin::createMathModule();
         builtinModules.insert_or_assign("math", std::move(mathBuiltinModule));
 
+        // JSON module
+        auto jsonBuiltinModule = builtin::createJsonModule();
+        builtinModules.insert_or_assign("json", std::move(jsonBuiltinModule));
+
         // OS module
         auto osBuiltinModule = builtin::makeModuleOS();
         builtinModules.insert_or_assign("os", std::move(osBuiltinModule));
@@ -1682,8 +1797,14 @@ namespace
         auto regexBuiltinModule = builtin::createRegexModule();
         builtinModules.insert_or_assign("regex", std::move(regexBuiltinModule));
 
+        auto timeBuiltinModule = builtin::createTimeModule();
+        builtinModules.insert_or_assign("time", std::move(timeBuiltinModule));
+
         auto threadingBuiltinModule = builtin::createThreadingModule();
         builtinModules.insert_or_assign("threading", std::move(threadingBuiltinModule));
+
+        auto typingBuiltinModule = builtin::createTypingModule();
+        builtinModules.insert_or_assign("typing", std::move(typingBuiltinModule));
     }
 
     std::unordered_map<obj::ObjectType, std::shared_ptr<obj::BuiltinType>> builtinTypes;
@@ -1767,6 +1888,7 @@ namespace
             {"input_line", builtin::makeBuiltInFunctionObj(&builtin::input_line, "", "str")}, /*< grab input from stdin */
             {"version", builtin::makeBuiltInFunctionObj(&builtin::version, "", "[int]")},     /*< request version as array */
             {"arg", builtin::makeBuiltInFunctionObj(&builtin::arg, "", "[str]")},             /*< command line args as array */
+            {"format", builtin::makeBuiltInFunctionObj(&builtin::format, "str, all", "str")}, /*< format a string */
 
             // interpreter control
             {"run", builtin::makeBuiltInFunctionObj(&builtin::run, "str", "null")},
@@ -1850,6 +1972,14 @@ void finalize()
     clearBuiltins();
 
     NullObject.reset();
+}
+
+std::shared_ptr<obj::Object> getBuiltin(const std::string &name)
+{
+    auto foundBuiltin = builtins.find(name);
+    if (foundBuiltin != builtins.end())
+        return foundBuiltin->second;
+    return nullptr;
 }
 
 /* check if there are objects that are going out of scope in this environment, if so
@@ -2242,10 +2372,13 @@ std::shared_ptr<obj::Object> evalNullPrefixOperator(TokenType operator_t, const 
 std::shared_ptr<obj::Object> evalIntegerPrefixOperator(TokenType operator_t, const std::shared_ptr<obj::Object> &object)
 {
     obj::Integer *intObj = static_cast<obj::Integer *>(object.get());
-    if (operator_t == TokenType::BANG)
+    switch (operator_t)
+    {
+    case TokenType::BANG:
         return std::make_shared<obj::Boolean>(obj::Boolean(intObj->value != 0));
-    if (operator_t == TokenType::MINUS)
+    case TokenType::MINUS:
         return std::make_shared<obj::Integer>(obj::Integer(-intObj->value));
+    }
 
     return std::make_shared<obj::Error>("Invalid prefix operator " + toString(operator_t) + " for " + obj::toString(object->type), obj::ErrorType::TypeError);
 }
@@ -2280,6 +2413,8 @@ std::shared_ptr<obj::Object> evalPrefixExpression(TokenType operator_t, const st
         return evalBooleanPrefixOperator(operator_t, object);
     case obj::ObjectType::Null:
         return evalNullPrefixOperator(operator_t, object);
+    case obj::ObjectType::Error:
+        return object;
     };
 
     return std::make_shared<obj::Error>("unknown prefix operator " + toString(operator_t) + " for " + obj::toString(object->type), obj::ErrorType::TypeError);
@@ -2296,6 +2431,8 @@ obj::Object *evalIntegerInfixOperator(TokenType operator_t, obj::Integer *left, 
     case TokenType::ASTERISK:
         return new obj::Integer(left->value * right->value);
     case TokenType::SLASH:
+        if (right->value == 0)
+            return new obj::Error("Division by 0", obj::ErrorType::ValueError);
         return new obj::Integer(left->value / right->value);
     case TokenType::PERCENT:
         return new obj::Integer(left->value % right->value);
@@ -2370,32 +2507,40 @@ obj::Object *evalComplexInfixOperator(TokenType operator_t, obj::Complex *left, 
 
 obj::Object *evalStringInfixOperator(TokenType operator_t, obj::String *left, obj::String *right)
 {
-    if (operator_t == TokenType::N_EQ)
+    switch (operator_t)
+    {
+    case TokenType::N_EQ:
         return new obj::Boolean(left->value != right->value);
-    if (operator_t == TokenType::EQ)
+    case TokenType::EQ:
         return new obj::Boolean(left->value == right->value);
-    if (operator_t == TokenType::LT)
+    case TokenType::LT:
         return new obj::Boolean(left->value < right->value);
-    if (operator_t == TokenType::GT)
+    case TokenType::GT:
         return new obj::Boolean(left->value > right->value);
-    if (operator_t == TokenType::LTEQ)
+    case TokenType::LTEQ:
         return new obj::Boolean(left->value <= right->value);
-    if (operator_t == TokenType::GTEQ)
+    case TokenType::GTEQ:
         return new obj::Boolean(left->value >= right->value);
+    case TokenType::PLUS:
+        return new obj::String(left->value + right->value);
+    }
 
     return new obj::Error("unknown operator " + toString(operator_t) + " for String", obj::ErrorType::TypeError);
 }
 
 obj::Object *evalBoolInfixOperator(TokenType operator_t, obj::Boolean *left, obj::Boolean *right)
 {
-    if (operator_t == TokenType::EQ)
+    switch (operator_t)
+    {
+    case TokenType::EQ:
         return new obj::Boolean(left->value == right->value);
-    if (operator_t == TokenType::N_EQ)
+    case TokenType::N_EQ:
         return new obj::Boolean(left->value != right->value);
-    if (operator_t == TokenType::DOUBLEPIPE)
+    case TokenType::DOUBLEPIPE:
         return new obj::Boolean(left->value || right->value);
-    if (operator_t == TokenType::DOUBLEAMPERSAND)
+    case TokenType::DOUBLEAMPERSAND:
         return new obj::Boolean(left->value && right->value);
+    }
 
     return new obj::Error("unknown operator " + toString(operator_t) + " for Boolean", obj::ErrorType::TypeError);
 }
@@ -2405,10 +2550,13 @@ obj::Object *evalNullInfixOperator(TokenType operator_t, obj::Object *left, obj:
     bool isLeftNull = dynamic_cast<obj::Null *>(left);
     bool isRightNull = dynamic_cast<obj::Null *>(right);
 
-    if (operator_t == TokenType::EQ)
+    switch (operator_t)
+    {
+    case TokenType::EQ:
         return new obj::Boolean(isLeftNull && (isLeftNull == isRightNull));
-    if (operator_t == TokenType::N_EQ)
+    case TokenType::N_EQ:
         return new obj::Boolean((isLeftNull || isRightNull) && (isLeftNull != isRightNull));
+    }
 
     return new obj::Error("Cannot use operator " + toString(operator_t) + " on NULL types", obj::ErrorType::TypeError);
 }
@@ -2598,10 +2746,13 @@ obj::Object *evalDictionaryInfixOperator(TokenType operator_t, obj::Object *left
     auto leftDict = dynamic_cast<obj::Dictionary *>(left);
     auto rightDict = dynamic_cast<obj::Dictionary *>(right);
 
-    if (operator_t == TokenType::EQ)
+    switch (operator_t)
+    {
+    case TokenType::EQ:
         return new obj::Boolean(dictEq(leftDict, rightDict));
-    if (operator_t == TokenType::N_EQ)
+    case TokenType::N_EQ:
         return new obj::Boolean(!dictEq(leftDict, rightDict));
+    }
 
     return new obj::Error("Cannot use operator " + toString(operator_t) + " on Dictionary types", obj::ErrorType::TypeError);
 }
@@ -2611,10 +2762,29 @@ obj::Object *evalSetInfixOperator(TokenType operator_t, obj::Object *left, obj::
     auto leftSet = dynamic_cast<obj::Set *>(left);
     auto rightSet = dynamic_cast<obj::Set *>(right);
 
-    if (operator_t == TokenType::EQ)
+    switch (operator_t)
+    {
+    case TokenType::EQ:
         return new obj::Boolean(setEq(leftSet, rightSet));
-    if (operator_t == TokenType::N_EQ)
+    case TokenType::N_EQ:
         return new obj::Boolean(!setEq(leftSet, rightSet));
+    }
+
+    return new obj::Error("Cannot use operator " + toString(operator_t) + " on Set types", obj::ErrorType::TypeError);
+}
+
+obj::Object *evalRangeInfixOperator(TokenType operator_t, obj::Object *left, obj::Object *right)
+{
+    auto leftRange = dynamic_cast<obj::Range *>(left);
+    auto rightRange = dynamic_cast<obj::Range *>(right);
+
+    switch (operator_t)
+    {
+    case TokenType::EQ:
+        return new obj::Boolean(leftRange->eq(rightRange));
+    case TokenType::N_EQ:
+        return new obj::Boolean(!leftRange->eq(rightRange));
+    }
 
     return new obj::Error("Cannot use operator " + toString(operator_t) + " on Set types", obj::ErrorType::TypeError);
 }
@@ -2865,6 +3035,12 @@ obj::Object *evalInfixOperator(TokenType operator_t, obj::Object *left, obj::Obj
     {
         if (right->type == obj::ObjectType::Set)
             return evalSetInfixOperator(operator_t, left, right);
+        break;
+    }
+    case obj::ObjectType::Range:
+    {
+        if (right->type == obj::ObjectType::Range)
+            return evalRangeInfixOperator(operator_t, left, right);
         break;
     }
     };
@@ -3395,6 +3571,8 @@ std::shared_ptr<obj::Object> evalExpression(ast::Expression *expression, const s
         return std::make_shared<obj::Boolean>(static_cast<ast::BooleanLiteral *>(expression)->value);
     case ast::NodeType::IntegerLiteral:
         return std::make_shared<obj::Integer>(static_cast<ast::IntegerLiteral *>(expression)->value);
+    case ast::NodeType::RangeLiteral:
+        return std::make_shared<obj::Range>(static_cast<ast::RangeLiteral *>(expression)->lower, static_cast<ast::RangeLiteral *>(expression)->upper, static_cast<ast::RangeLiteral *>(expression)->stride);
     case ast::NodeType::DoubleLiteral:
         return std::make_shared<obj::Double>(static_cast<ast::DoubleLiteral *>(expression)->value);
     case ast::NodeType::StringLiteral:
@@ -3641,6 +3819,11 @@ std::shared_ptr<obj::Object> evalLetStatement(ast::LetStatement *statement, cons
         return NullObject;
 
     auto exprValue = evalExpression(statement->value.get(), environment, statement->valueType.get());
+
+    // an error can be assigned to a LHS?
+    // if (exprValue->type == obj::ObjectType::Error)
+    //    return exprValue;
+
     if (!typing::isCompatibleType(statement->valueType.get(), exprValue.get(), nullptr))
     {
         return std::make_shared<obj::Error>("Incompatible type " + statement->valueType->text() + " for " + statement->value->tokenLiteral(), obj::ErrorType::TypeError, statement->valueType->token);
@@ -3932,6 +4115,7 @@ std::shared_ptr<obj::Object> evalStatements(std::vector<std::unique_ptr<ast::Sta
         {
         case obj::ObjectType::ReturnValue:
         case obj::ObjectType::BreakValue:
+        case obj::ObjectType::ContinueValue:
         case obj::ObjectType::Error:
         case obj::ObjectType::Exit:
             return result;
@@ -3953,6 +4137,8 @@ std::shared_ptr<obj::Object> evalStatement(ast::Statement *statement, const std:
         return std::make_shared<obj::ReturnValue>(evalExpression(static_cast<ast::ReturnStatement *>(statement)->returnValue.get(), environment));
     case ast::NodeType::BreakStatement:
         return std::make_shared<obj::BreakValue>();
+    case ast::NodeType::ContinueStatement:
+        return std::make_shared<obj::ContinueValue>();
     case ast::NodeType::BlockStatement:
         return evalStatements(&static_cast<ast::BlockStatement *>(statement)->statements, environment);
     case ast::NodeType::ScopeStatement:

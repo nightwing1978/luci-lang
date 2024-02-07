@@ -1,0 +1,21 @@
+import test_help;
+import json;
+
+let a : int = 1;
+test_help::test_eq( json.load(json.dump(a)), a, "int");
+
+let b : double = 1.0;
+test_help::test_eq( json.load(json.dump(b)), b, "double");
+
+let c : str = "three";
+test_help::test_eq( json.load(json.dump(c)), c, "str");
+
+let d : [all] = [1, 2.0, "three"];
+test_help::test_eq( json.load(json.dump(d)), d, "mixed array");
+
+let e : {str:all} = {
+    "a" : 1,
+    "b" : 2.0,
+    "c" : "three",
+};
+test_help::test_eq( json.load(json.dump(e)), e, "dict");

@@ -9,9 +9,32 @@
 #include "Typing.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include "Evaluator.h" // to get access to the builtins
 
 namespace typing
 {
+    ast::TypeExpression *AnalysisContext::findType(const std::string &name) const
+    {
+        auto foundType = context.find(name);
+        if (foundType != context.end())
+            return foundType->second.get();
+
+        if (!outer)
+            return nullptr;
+        return outer->findType(name);
+    }
+
+    ast::TypeLiteral *AnalysisContext::findTypeDefinition(const std::string &name) const
+    {
+        auto foundType = typeContext.find(name);
+        if (foundType != typeContext.end())
+            return foundType->second;
+
+        if (!outer)
+            return nullptr;
+        return outer->findTypeDefinition(name);
+    }
+
     bool CompareTypes::operator()(ast::TypeExpression *a, ast::TypeExpression *b) const
     {
         if (a == b)
@@ -22,6 +45,570 @@ namespace typing
 
         return a->text() < b->text();
     };
+
+    // sort the choices in alfabetical order, to make stringified comparisons easier
+    void makeCanonical(ast::TypeChoice *choice)
+    {
+        std::sort(choice->choices.begin(), choice->choices.end(), [](const auto &typeA, const auto &typeB)
+                  { return CompareTypes()(typeA.get(), typeB.get()); });
+    }
+
+    void removeRedundant(ast::TypeChoice *choice)
+    {
+        std::set<std::string> occurence;
+        int redundantElements = 0;
+        int length = static_cast<int>(choice->choices.size());
+        for (int i = 0; i < (length - redundantElements); ++i)
+        {
+            auto typeStr = choice->choices[i]->text();
+            if (occurence.find(typeStr) != occurence.end())
+            {
+                std::swap(choice->choices[i], choice->choices[length - 1 - redundantElements]);
+                redundantElements += 1;
+                i -= 1; // revisit the current element as we swapped the last element to it
+            }
+            else
+            {
+                occurence.insert(typeStr);
+            }
+        }
+        choice->choices.resize(length - redundantElements);
+        makeCanonical(choice);
+    }
+
+    std::unique_ptr<ast::TypeExpression>
+    mergeTypes(std::unique_ptr<ast::TypeExpression> a, std::unique_ptr<ast::TypeExpression> b)
+    {
+        if (!a)
+            return b;
+
+        if (!b)
+            return a;
+
+        if (a->text() == b->text())
+            return a;
+
+        switch (a->type)
+        {
+        case ast::NodeType::TypeChoice:
+        {
+            auto aChoice = static_cast<ast::TypeChoice *>(a.get());
+            switch (b->type)
+            {
+            case ast::NodeType::TypeChoice:
+            {
+                auto bChoice = static_cast<ast::TypeChoice *>(b.get());
+                for (auto &element : bChoice->choices)
+                    aChoice->choices.push_back(std::move(element));
+                removeRedundant(aChoice);
+                return a;
+            }
+            default:
+            {
+                aChoice->choices.push_back(std::move(b));
+                removeRedundant(aChoice);
+                return a;
+            }
+            }
+        }
+        }
+        auto choiceType = std::make_unique<ast::TypeChoice>();
+        choiceType->choices.push_back(std::move(a));
+        choiceType->choices.push_back(std::move(b));
+        makeCanonical(choiceType.get());
+        return choiceType;
+    }
+
+    std::unique_ptr<ast::TypeExpression> computeTypeInfixExpression(ast::InfixExpression *node, std::shared_ptr<AnalysisContext> context)
+    {
+        switch (node->operator_t.type)
+        {
+        case TokenType::PLUS:
+        case TokenType::MINUS:
+        case TokenType::SLASH:
+        case TokenType::ASTERISK:
+        case TokenType::DOUBLEASTERISK:
+        case TokenType::PLUSASSIGN:
+        case TokenType::MINUSASSIGN:
+        case TokenType::SLASHASSIGN:
+        case TokenType::ASTERISKASSIGN:
+        {
+            // expect left and right to be of same type
+            auto leftType = computeType(node->left.get(), context);
+            auto rightType = computeType(node->right.get(), context);
+            if (leftType && rightType && leftType->text() == rightType->text())
+            {
+                return leftType;
+            }
+        }
+        case TokenType::PERCENT:
+        {
+            // expect left and right to be of same type
+            auto leftType = computeType(node->left.get(), context);
+            auto rightType = computeType(node->right.get(), context);
+            if (leftType && rightType && leftType->text() == rightType->text() && leftType->text() == "int")
+            {
+                return leftType;
+            }
+        }
+        case TokenType::EQ:
+        case TokenType::N_EQ:
+        case TokenType::LTEQ:
+        case TokenType::GTEQ:
+        case TokenType::LT:
+        case TokenType::GT:
+        {
+            // expect left and right to be of same type
+            auto leftType = computeType(node->left.get(), context);
+            auto rightType = computeType(node->right.get(), context);
+            if (leftType && rightType && leftType->text() == rightType->text())
+            {
+                return std::make_unique<ast::TypeIdentifier>("bool");
+            }
+        }
+        case TokenType::DOUBLEPIPE:
+        case TokenType::DOUBLEAMPERSAND:
+        {
+            // expect left and right to be of same type
+            auto leftType = computeType(node->left.get(), context);
+            auto rightType = computeType(node->right.get(), context);
+            if (leftType && rightType && leftType->text() == rightType->text() && leftType->text() == "bool")
+            {
+                return std::make_unique<ast::TypeIdentifier>("bool");
+            }
+        }
+        };
+
+        return nullptr;
+    }
+
+    std::unique_ptr<ast::TypeExpression> computeReturnType(ast::BlockStatement *node, std::shared_ptr<AnalysisContext> context, bool lastStatementIsImplicitReturn)
+    {
+        if (!node)
+            return nullptr;
+
+        std::unique_ptr<ast::TypeExpression> returnType = nullptr;
+        for (auto &stmt : node->statements)
+        {
+            switch (stmt->type)
+            {
+            case ast::NodeType::ReturnStatement:
+            {
+                auto returnStatement = static_cast<ast::ReturnStatement *>(stmt.get());
+                auto thisReturnType = computeType(returnStatement->returnValue.get(), context);
+                returnType = mergeTypes(std::move(returnType), std::move(thisReturnType));
+                break;
+            }
+            case ast::NodeType::LetStatement:
+            {
+                auto letStatement = static_cast<ast::LetStatement *>(stmt.get());
+                if (letStatement->valueType)
+                {
+                    context->context[letStatement->name.value] = letStatement->valueType->clone();
+                }
+                else
+                {
+                    auto computedType = typing::computeType(letStatement->value.get(), context);
+                    if (computedType)
+                        context->context[letStatement->name.value] = std::move(computedType);
+                }
+                break;
+            }
+            case ast::NodeType::BlockStatement:
+            {
+                auto newScopeContext = std::make_shared<typing::AnalysisContext>();
+                newScopeContext->outer = context;
+                auto block = static_cast<ast::BlockStatement *>(stmt.get());
+                auto thisReturnType = computeReturnType(block, newScopeContext, false);
+                returnType = mergeTypes(std::move(returnType), std::move(thisReturnType));
+                break;
+            }
+            case ast::NodeType::ExpressionStatement:
+            {
+                auto exprStmt = static_cast<ast::ExpressionStatement *>(stmt.get());
+                switch (exprStmt->expression->type)
+                {
+                case ast::NodeType::IfExpression:
+                {
+                    auto newScopeContext = std::make_shared<typing::AnalysisContext>();
+                    newScopeContext->outer = context;
+                    auto ifExpr = static_cast<ast::IfExpression *>(exprStmt->expression.get());
+                    auto consequenceReturnType = computeReturnType(ifExpr->consequence.get(), newScopeContext, false);
+                    returnType = mergeTypes(std::move(returnType), std::move(consequenceReturnType));
+
+                    newScopeContext = std::make_shared<typing::AnalysisContext>();
+                    newScopeContext->outer = context;
+                    auto alternativeReturnType = computeReturnType(ifExpr->alternative.get(), context, false);
+                    returnType = mergeTypes(std::move(returnType), std::move(alternativeReturnType));
+                    break;
+                }
+                case ast::NodeType::ForExpression:
+                {
+                    auto newScopeContext = std::make_shared<typing::AnalysisContext>();
+                    newScopeContext->outer = context;
+                    auto forExpr = static_cast<ast::ForExpression *>(exprStmt->expression.get());
+
+                    auto computedTypeIterable = typing::computeType(forExpr->iterable.get(), context);
+                    if (computedTypeIterable)
+                    {
+                        auto computedTypeIter = typing::computeIndexedType(computedTypeIterable.get(), context);
+                        if (computedTypeIter)
+                        {
+                            newScopeContext->context[forExpr->name.value] = std::move(computedTypeIter);
+                        }
+                    }
+                    auto forReturnType = computeReturnType(forExpr->statement.get(), newScopeContext, false);
+                    returnType = mergeTypes(std::move(returnType), std::move(forReturnType));
+                    break;
+                }
+                case ast::NodeType::WhileExpression:
+                {
+                    auto newScopeContext = std::make_shared<typing::AnalysisContext>();
+                    newScopeContext->outer = context;
+                    auto whileExpr = static_cast<ast::WhileExpression *>(exprStmt->expression.get());
+                    auto whileReturnType = computeReturnType(whileExpr->statement.get(), newScopeContext, false);
+                    returnType = mergeTypes(std::move(returnType), std::move(whileReturnType));
+                    break;
+                }
+                }
+                auto returnStatement = static_cast<ast::ReturnStatement *>(stmt.get());
+                break;
+            }
+            }
+        }
+
+        if (!lastStatementIsImplicitReturn)
+            return returnType;
+
+        // the last statement, can also be an expression statement and that is also valid as return value
+        if (!node->statements.empty())
+        {
+            switch (node->statements.back()->type)
+            {
+            case ast::NodeType::ExpressionStatement:
+            {
+                auto exprStmt = static_cast<ast::ExpressionStatement *>(node->statements.back().get());
+                auto lastStmtType = computeType(exprStmt->expression.get(), context);
+                returnType = mergeTypes(std::move(returnType), std::move(lastStmtType));
+                break;
+            }
+            case ast::NodeType::LetStatement:
+            {
+                auto lastStmtType = std::make_unique<ast::TypeNull>();
+                returnType = mergeTypes(std::move(returnType), std::move(lastStmtType));
+                break;
+            }
+            }
+        }
+        return returnType;
+    }
+
+    std::unique_ptr<ast::TypeExpression> computeIndexedType(ast::TypeExpression *type, std::shared_ptr<AnalysisContext> context)
+    {
+        switch (type->type)
+        {
+        case ast::NodeType::TypeArray:
+        {
+            auto arrayType = static_cast<ast::TypeArray *>(type);
+            return arrayType->elementType->clone();
+        }
+        case ast::NodeType::TypeDictionary:
+        {
+            auto dictType = static_cast<ast::TypeDictionary *>(type);
+            return dictType->valueType->clone();
+        }
+        case ast::NodeType::TypeSet:
+        {
+            auto setType = static_cast<ast::TypeSet *>(type);
+            return setType->elementType->clone();
+        }
+        case ast::NodeType::TypeIdentifier:
+        {
+            auto identifierType = static_cast<ast::TypeIdentifier *>(type);
+            if (identifierType->value == "range")
+                return std::make_unique<ast::TypeIdentifier>("int");
+            break;
+        }
+        }
+        return nullptr;
+    }
+
+    std::unique_ptr<ast::TypeExpression> computeType(ast::Node *node, std::shared_ptr<AnalysisContext> context)
+    {
+        if (!node)
+            return nullptr;
+
+        switch (node->type)
+        {
+        case ast::NodeType::Identifier:
+        {
+            auto identifierNode = static_cast<ast::Identifier *>(node);
+            auto foundType = context->findType(identifierNode->value);
+            if (foundType)
+                return foundType->clone();
+            return nullptr;
+        }
+
+        case ast::NodeType::BooleanLiteral:
+            return std::make_unique<ast::TypeIdentifier>("bool");
+        case ast::NodeType::IntegerLiteral:
+            return std::make_unique<ast::TypeIdentifier>("int");
+        case ast::NodeType::DoubleLiteral:
+            return std::make_unique<ast::TypeIdentifier>("double");
+        case ast::NodeType::ComplexLiteral:
+            return std::make_unique<ast::TypeIdentifier>("complex");
+        case ast::NodeType::StringLiteral:
+            return std::make_unique<ast::TypeIdentifier>("str");
+        case ast::NodeType::NullLiteral:
+            return std::make_unique<ast::TypeIdentifier>("null");
+        case ast::NodeType::ArrayComplexLiteral:
+        {
+            auto arrayType = std::make_unique<ast::TypeArray>();
+            arrayType->elementType = std::make_unique<ast::TypeIdentifier>("complex");
+            return arrayType;
+        }
+        case ast::NodeType::ArrayDoubleLiteral:
+        {
+            auto arrayType = std::make_unique<ast::TypeArray>();
+            arrayType->elementType = std::make_unique<ast::TypeIdentifier>("double");
+            return arrayType;
+        }
+        case ast::NodeType::ArrayLiteral:
+        {
+            auto arrayType = std::make_unique<ast::TypeArray>();
+            auto arrayNode = static_cast<ast::ArrayLiteral *>(node);
+            if (arrayNode->elements.empty())
+            {
+                arrayType->elementType = std::make_unique<ast::TypeAll>();
+                return arrayType;
+            }
+            auto elementType = computeType(arrayNode->elements.front().get(), context);
+            for (size_t i = 1; i < arrayNode->elements.size(); ++i)
+            {
+                auto nextElementType = computeType(arrayNode->elements[i].get(), context);
+                elementType = mergeTypes(std::move(elementType), std::move(nextElementType)); // merge and reduce the types
+            }
+            arrayType->elementType = std::move(elementType);
+            return arrayType;
+        }
+        case ast::NodeType::DictLiteral:
+        {
+            auto dictType = std::make_unique<ast::TypeDictionary>();
+            auto dictNode = static_cast<ast::DictLiteral *>(node);
+            if (dictNode->elements.empty())
+            {
+                dictType->keyType = std::make_unique<ast::TypeAll>();
+                dictType->valueType = std::make_unique<ast::TypeAll>();
+                return dictType;
+            }
+
+            auto elementIt = dictNode->elements.begin();
+            auto keyType = computeType(elementIt->first.get(), context);
+            auto valueType = computeType(elementIt->second.get(), context);
+
+            ++elementIt;
+            for (; elementIt != dictNode->elements.end(); ++elementIt)
+            {
+                auto nextKeyType = computeType(elementIt->first.get(), context);
+                keyType = mergeTypes(std::move(keyType), std::move(nextKeyType)); // merge and reduce the types
+
+                auto nextValueType = computeType(elementIt->second.get(), context);
+                valueType = mergeTypes(std::move(valueType), std::move(nextValueType)); // merge and reduce the types
+            }
+            dictType->keyType = std::move(keyType);
+            dictType->valueType = std::move(valueType);
+            return dictType;
+        }
+        case ast::NodeType::SetLiteral:
+        {
+            auto setType = std::make_unique<ast::TypeSet>();
+            auto setNode = static_cast<ast::SetLiteral *>(node);
+            if (setNode->elements.empty())
+            {
+                setType->elementType = std::make_unique<ast::TypeAll>();
+                return setType;
+            }
+
+            auto elementIt = setNode->elements.begin();
+            auto elementType = computeType(elementIt->get(), context);
+            for (; elementIt != setNode->elements.end(); ++elementIt)
+            {
+                auto nextElementType = computeType(elementIt->get(), context);
+                elementType = mergeTypes(std::move(elementType), std::move(nextElementType)); // merge and reduce the types
+            }
+            setType->elementType = std::move(elementType);
+            return setType;
+        }
+        case ast::NodeType::InfixExpression:
+        {
+            return computeTypeInfixExpression(static_cast<ast::InfixExpression *>(node), context);
+        }
+        case ast::NodeType::FunctionLiteral:
+        {
+            auto funcLiteral = static_cast<ast::FunctionLiteral *>(node);
+            auto funcType = std::make_unique<ast::TypeFunction>();
+
+            // to compute the return type we can use the provided, declared arguments
+            auto newScopeContext = std::make_shared<typing::AnalysisContext>();
+            newScopeContext->outer = context;
+            for (size_t i = 0; i < funcLiteral->arguments.size(); ++i)
+            {
+                if (i < funcLiteral->argumentTypes.size() && funcLiteral->argumentTypes[i])
+                    newScopeContext->context.insert_or_assign(funcLiteral->arguments[i].value, funcLiteral->argumentTypes[i]->clone());
+            }
+
+            funcType->returnType = computeReturnType(funcLiteral->body.get(), newScopeContext, true);
+            for (const auto &argType : funcLiteral->argumentTypes)
+            {
+                // cannot yet compute the argument types, we can know the declaration
+                // but that is not the point here, we want to compute it and make a
+                // separation between computed and declared types
+                funcType->argTypes.push_back(std::make_unique<ast::TypeAll>());
+            }
+            return funcType;
+        }
+        case ast::NodeType::CallExpression:
+        {
+            auto callExpr = static_cast<ast::CallExpression *>(node);
+            auto &callFuncExpr = callExpr->function;
+            if (callFuncExpr && callFuncExpr->type == ast::NodeType::Identifier)
+            {
+                auto callIdentifier = static_cast<ast::Identifier *>(callFuncExpr.get());
+
+                // builtins do take precedence
+                auto foundBuiltin = getBuiltin(callIdentifier->value);
+                if (foundBuiltin && foundBuiltin->type == obj::ObjectType::Builtin)
+                {
+                    auto builtinFunc = static_cast<obj::Builtin *>(foundBuiltin.get());
+                    if (builtinFunc->declaredType && builtinFunc->declaredType->type == ast::NodeType::TypeFunction)
+                    {
+                        auto functionType = static_cast<ast::TypeFunction *>(builtinFunc->declaredType);
+                        if (functionType->returnType)
+                            return functionType->returnType->clone();
+                        return nullptr;
+                    }
+                    return nullptr;
+                }
+
+                auto foundIdentifier = context->findType(callIdentifier->value);
+                if (foundIdentifier)
+                {
+                    switch (foundIdentifier->type)
+                    {
+                    case ast::NodeType::TypeFunction:
+                    {
+                        auto funcFound = static_cast<ast::TypeFunction *>(foundIdentifier);
+                        if (funcFound->returnType)
+                            return funcFound->returnType->clone();
+                        return nullptr;
+                    }
+                    case ast::NodeType::TypeType:
+                    {
+                        auto typeFound = static_cast<ast::TypeType *>(foundIdentifier);
+                        return typeFound->clone();
+                    }
+                    }
+                }
+            }
+            else if (callFuncExpr && callFuncExpr->type == ast::NodeType::MemberExpression)
+            {
+                auto memberExpr = static_cast<ast::MemberExpression *>(callFuncExpr.get());
+                auto computedMemberExpr = computeType(memberExpr->expr.get(), context);
+                if (computedMemberExpr && computedMemberExpr->type == ast::NodeType::TypeType)
+                {
+                    auto customType = context->findType(computedMemberExpr->text());
+                    if (customType && customType->type == ast::NodeType::TypeType)
+                    {
+                        auto typeType = static_cast<ast::TypeType *>(customType);
+                        auto typeLiteral = context->findTypeDefinition(computedMemberExpr->text());
+                        // [TODO] find the value in the definitions, should be done more encapsulated
+                        for (const auto &definition : typeLiteral->definitions)
+                        {
+                            if (definition->name.value == memberExpr->value.value)
+                            {
+                                if (definition->value->type == ast::NodeType::FunctionLiteral)
+                                {
+                                    auto funcLiteral = static_cast<ast::FunctionLiteral *>(definition->value.get());
+                                    return computeReturnType(funcLiteral->body.get(), context, true);
+                                }
+                                else
+                                {
+                                    // cannot call a non-function
+                                }
+                            }
+                        }
+                    }
+                }
+                return nullptr;
+            }
+            return nullptr;
+        }
+        case ast::NodeType::MemberExpression:
+        {
+            auto memberExpr = static_cast<ast::MemberExpression *>(node);
+            auto computedMemberExpr = computeType(memberExpr->expr.get(), context);
+            if (computedMemberExpr && computedMemberExpr->type == ast::NodeType::TypeType)
+            {
+                auto customType = context->findType(computedMemberExpr->text());
+                if (customType && customType->type == ast::NodeType::TypeType)
+                {
+                    auto typeType = static_cast<ast::TypeType *>(customType);
+                    auto typeLiteral = context->findTypeDefinition(computedMemberExpr->text());
+                    // [TODO] find the value in the definitions, should be done more encapsulated
+                    for (const auto &definition : typeLiteral->definitions)
+                    {
+                        if (definition->name.value == memberExpr->value.value)
+                        {
+                            if (definition->exprType)
+                                return definition->exprType->clone();
+                            return computeType(definition->value.get(), context);
+                        }
+                    }
+                }
+            }
+            return nullptr;
+        }
+        case ast::NodeType::IndexExpression:
+        {
+            auto indexExpr = static_cast<ast::IndexExpression *>(node)->expression.get();
+            switch (indexExpr->type)
+            {
+            case ast::NodeType::Identifier:
+            {
+                auto indexIdentifier = static_cast<ast::Identifier *>(indexExpr);
+                auto identifierFound = context->findType(indexIdentifier->value);
+                if (identifierFound)
+                {
+                    return computeIndexedType(identifierFound, context);
+                }
+            }
+            break;
+            default:
+            {
+                auto computedTypeOfOuter = computeType(indexExpr, context);
+                if (computedTypeOfOuter)
+                {
+                    return computeIndexedType(computedTypeOfOuter.get(), context);
+                }
+            }
+            }
+            return nullptr;
+        }
+        case ast::NodeType::ExpressionStatement:
+        {
+            auto exprStmt = static_cast<ast::ExpressionStatement *>(node);
+            return computeType(exprStmt->expression.get(), context);
+        }
+        case ast::NodeType::LetStatement:
+        case ast::NodeType::ForExpression:
+        case ast::NodeType::WhileExpression:
+        case ast::NodeType::IfExpression:
+            return std::make_unique<ast::TypeIdentifier>("null");
+            // [TODO] what about the other expression types?
+        }
+
+        return nullptr;
+    }
 
     std::unique_ptr<ast::TypeExpression> computeType(obj::Object *obj)
     {
@@ -234,6 +821,9 @@ namespace typing
      *       isCompatible( "double", "any") -> True          double is a subset of any
      *       isCompatible( "any", "all") -> True             any is a subset of all
      *       isCompatible( "all", "any") -> False            all is not a subset of any
+     *       isCompatible( "double", "<double>") -> True            double is a subset of a choice of double
+     *       isCompatible( "double", "<double,int>") -> True            double is a subset of a choice of double, int
+     *       isCompatible( "<double,int>", "<double,int>") -> True            double is a subset of a choice of double, int
      */
     bool isCompatibleType(ast::TypeExpression *type1, ast::TypeExpression *type2)
     {
@@ -245,6 +835,21 @@ namespace typing
 
         if (type2 == nullptr)
             return false;
+
+        switch (type1->type)
+        {
+        case ast::NodeType::TypeChoice:
+        {
+            // all the choices must match in the type2 or there is an incompatibility possible
+            const auto &type1Choices = static_cast<ast::TypeChoice *>(type1)->choices;
+            for (const auto &choice : type1Choices)
+            {
+                if (!isCompatibleType(choice.get(), type2))
+                    return false;
+            }
+            return true;
+        }
+        }
 
         switch (type2->type)
         {

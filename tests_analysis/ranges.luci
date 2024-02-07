@@ -1,0 +1,8 @@
+let a = range(5);
+let b = 5;
+for (i in a) 
+{
+    let c = i + b;
+}
+
+let d = b + 3;

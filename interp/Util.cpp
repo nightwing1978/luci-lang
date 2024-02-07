@@ -8,6 +8,7 @@
 
 #include "Util.h"
 #include <sstream>
+#include <regex>
 
 namespace util
 {
@@ -24,6 +25,12 @@ namespace util
             ss << separator << strings[i];
         }
         return ss.str();
+    }
+
+    std::string removeNewLines(const std::string &input)
+    {
+        std::regex newLines("\n+");
+        return std::regex_replace(input, newLines, " ");
     }
 
     std::string withEllipsis(const std::string &input, size_t max_length)

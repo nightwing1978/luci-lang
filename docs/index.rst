@@ -27,9 +27,14 @@ Base Types:
    * Integer: int that is 64-bit wide
    * Float: 64-bit floating point real numbers
    * Complex: 64-bit floating point complex numbers
+   * Strings: a sequence of characters
+
+Ohter Types:
    * List: [1,2,3]
    * Dictionary: { 1 : "1", 2 : "2" }
    * Sets: { 1, 2, 3 }
+   * Range: 0..5:2 a range of integers with a lower, excluding upper with optional stride
+   * Regex: match and search for strings using regular expressions
 
 Control Structures:
    * Conditionals: if {} else {}
@@ -64,9 +69,15 @@ Scope and lifetime control:
 Modules:
    * Module import and scoping: import foo; foo::bar();
 
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   1 - Getting Started <source/chapter-1>
+   2 - Language <source/chapter-2>
+   3 - Built-in modules <source/chapter-3>
+   4 - Tools <source/chapter-4>
 
 Indices and tables
 ==================

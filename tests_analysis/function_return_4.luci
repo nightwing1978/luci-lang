@@ -1,0 +1,10 @@
+let A = fn() -> double {
+    let ij : double = to_double(i+j);
+    return 1.0 / ((ij * (ij+1.0) / 2.0) + to_double(i) + 1.0);
+}
+
+let B = fn() -> int {
+    let capture = A;
+    let ret : [double] = [];
+    return ret;
+}

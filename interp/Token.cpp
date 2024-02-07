@@ -96,6 +96,10 @@ namespace TokenTypeStr
 
     const std::string FOR = "FOR";
     const std::string IN = "IN";
+
+    const std::string CONTINUE = "CONTINUE";
+
+    const std::string DOTDOT = "..";
 }
 
 bool Token::operator==(const Token &other) const
@@ -235,6 +239,10 @@ std::string toString(TokenType tokenType)
         return TokenTypeStr::IN;
     case TokenType::IMPORT:
         return TokenTypeStr::IMPORT;
+    case TokenType::CONTINUE:
+        return TokenTypeStr::CONTINUE;
+    case TokenType::DOTDOT:
+        return TokenTypeStr::DOTDOT;
     };
     return TokenTypeStr::NOT_SET;
 }

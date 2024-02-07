@@ -10,6 +10,7 @@
 #define GUARDIAN_OF_INCLUSION_OBJECT_H
 
 #include "Ast.h"
+#include <chrono>
 #include <string>
 #include <map>
 #include <unordered_map>
@@ -57,6 +58,9 @@ namespace obj
         Thread = 29,
         Range = 30,
         Regex = 31,
+        ContinueValue = 32,
+        Clock = 33,
+        TimePoint = 34,
     };
 
     std::string toString(const ObjectType &type);
@@ -69,13 +73,16 @@ namespace obj
         int frozen = 0; /*< when frozen larger than 0 no updates allowed to object */
         ObjectType type;
         ast::TypeExpression *declaredType = nullptr; /*< objects that have a declared type will carry non-nullptrs */
-        virtual std::string inspect() const { return std::string(); };
-        virtual std::size_t hash() const { return 0; };
-        virtual bool hashAble() const { return false; };
-        virtual bool eq(const Object *other) const { return false; };
-        virtual std::shared_ptr<Object> clone() const { return nullptr; };
+        virtual std::string inspect() const;
+        virtual std::size_t hash() const;
+        virtual bool hashAble() const;
+        virtual bool eq(const Object *other) const;
+        virtual std::shared_ptr<Object> clone() const;
         Object(ObjectType itype = ObjectType::Unknown);
         virtual ~Object();
+
+        void *operator new(size_t size);
+        void operator delete(void *ptr);
     };
 
     struct ObjectFreezer : public Object
@@ -248,8 +255,9 @@ namespace obj
         virtual std::string inspect() const override;
         virtual std::shared_ptr<Object> clone() const override
         {
-            return std::make_shared<obj::Range>();
+            return std::make_shared<obj::Range>(lower, upper, stride);
         }
+        virtual bool eq(const Object *other) const override;
         int64_t length() const;
         std::vector<int64_t> values() const;
         Range() : Object(ObjectType::Range), lower(0), upper(0), stride(1){};
@@ -518,6 +526,13 @@ namespace obj
         BreakValue() : Object(ObjectType::BreakValue){};
     };
 
+    struct ContinueValue : public Object
+    {
+        virtual std::string inspect() const override;
+        virtual std::shared_ptr<Object> clone() const override { return std::make_shared<ContinueValue>(); };
+        ContinueValue() : Object(ObjectType::ContinueValue){};
+    };
+
     struct Exit : public Object
     {
         Token token;
@@ -652,6 +667,34 @@ namespace obj
         Regex(const std::regex &re);
         virtual ~Regex();
     };
+
+    // struct Clock : public Object
+    // {
+    //     std::shared_ptr<std::chrono::steady_clock> clock_;
+
+    //     virtual std::string inspect() const override;
+    //     virtual std::shared_ptr<Object> clone() const override
+    //     {
+    //         return std::make_shared<obj::Clock>();
+    //     };
+    //     Clock();
+    //     virtual ~Clock();
+    // };
+
+    // struct TimePoint : public Object
+    // {
+    //     typedef std::chrono::time_point<std::chrono::steady_clock> TTimePoint;
+
+    //     TTimePoint timePoint;
+
+    //     virtual std::string inspect() const override;
+    //     virtual std::shared_ptr<Object> clone() const override
+    //     {
+    //         return std::make_shared<obj::TimePoint>(timePoint);
+    //     };
+    //     TimePoint(const TTimePoint &tp);
+    //     virtual ~TimePoint();
+    // };
 
     struct Thread : public Object
     {

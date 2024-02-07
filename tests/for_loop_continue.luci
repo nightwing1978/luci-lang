@@ -1,0 +1,22 @@
+import test_help;
+
+let a = 0;
+for (x in [0,1,2])
+{
+    if (x==2) 
+    {
+        continue;
+    }
+    a = x;
+};
+
+print("a=",a);
+
+scope 
+{
+    a = 1;
+    a = 2;
+}
+
+print("a=",a);
+

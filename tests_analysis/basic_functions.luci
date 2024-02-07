@@ -1,0 +1,11 @@
+let a = fn() -> int 
+{
+    return 1;
+}
+
+let b = 1 + a();
+
+let c = fn(x : int) 
+{
+    let d = x + 2;
+}

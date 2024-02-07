@@ -104,7 +104,8 @@ Parser::Parser(std::unique_ptr<Lexer> iLexer)
 {
     registerPrefix(TokenType::IDENT, &Parser::parseIdentifier);
     registerPrefix(TokenType::NULL_T, &Parser::parseNull);
-    registerPrefix(TokenType::INT, &Parser::parseIntegerLiteral);
+    registerPrefix(TokenType::INT, &Parser::parseIntegerOrRangeLiteral);
+    registerPrefix(TokenType::DOTDOT, &Parser::parseRangeLiteral);
     registerPrefix(TokenType::DOUBLE, &Parser::parseDoubleLiteral);
     registerPrefix(TokenType::STRING, &Parser::parseStringLiteral);
     registerPrefix(TokenType::FALSE, &Parser::parseBooleanLiteral);
@@ -159,6 +160,7 @@ Parser::Parser(std::unique_ptr<Lexer> iLexer)
 
     ////////////////////
 
+    nextToken(); // initialize the parser by filling up peek2Token
     nextToken(); // initialize the parser by filling up peekToken
     nextToken(); // initialize the parser by filling up curToken
 }
@@ -216,7 +218,8 @@ Parser::Precedence Parser::peekPrecedence() const
 void Parser::nextToken()
 {
     curToken = peekToken;
-    peekToken = ::nextToken(*lexer);
+    peekToken = peek2Token;
+    peek2Token = ::nextToken(*lexer);
 }
 
 void Parser::advanceTokens()
@@ -248,6 +251,8 @@ std::unique_ptr<ast::Program> Parser::parseProgram()
             statement = parseReturnStatement();
         else if (curToken.type == TokenType::BREAK)
             statement = parseBreakStatement();
+        else if (curToken.type == TokenType::CONTINUE)
+            statement = parseContinueStatement();
         else if (curToken.type == TokenType::SCOPE)
             statement = parseScopeStatement();
         else if (curToken.type == TokenType::COMMENT)
@@ -284,6 +289,30 @@ void Parser::parseError(const std::string &msg, const Token &token)
 
 std::unique_ptr<ast::Expression> Parser::parsePrefixExpression()
 {
+    if (curToken.type == TokenType::MINUS && peekToken.type == TokenType::INT && peek2Token.type == TokenType::DOTDOT)
+    {
+        // special case to disambiguate between unary operator - and then a range
+        // need to repeat some of the parsing of range literals here
+        std::unique_ptr<ast::RangeLiteral> rangeLiteral = std::make_unique<ast::RangeLiteral>();
+        rangeLiteral->token = curToken;
+        char *pEnd = 0;
+        advanceTokens();
+        rangeLiteral->lower = -std::strtoll(curToken.literal.c_str(), &pEnd, 10);
+        advanceTokens();
+        if (!expectPeek(TokenType::INT))
+            return nullptr;
+        rangeLiteral->upper = std::strtoll(curToken.literal.c_str(), &pEnd, 10);
+        if (peekToken.type == TokenType::COLON)
+        {
+            // optionally the stride
+            advanceTokens();
+            if (!expectPeek(TokenType::INT))
+                return nullptr;
+
+            rangeLiteral->stride = std::strtoll(curToken.literal.c_str(), &pEnd, 10);
+        }
+        return rangeLiteral;
+    }
     std::unique_ptr<ast::PrefixExpression> prefixExpr = std::make_unique<ast::PrefixExpression>();
     prefixExpr->token = curToken;
     prefixExpr->operator_t = curToken;
@@ -387,13 +416,68 @@ std::unique_ptr<ast::Expression> Parser::parseNull()
     return nullLiteral;
 }
 
-std::unique_ptr<ast::Expression> Parser::parseIntegerLiteral()
+std::unique_ptr<ast::Expression> Parser::parseIntegerOrRangeLiteral()
 {
     std::unique_ptr<ast::IntegerLiteral> integerLiteral = std::make_unique<ast::IntegerLiteral>();
     integerLiteral->token = curToken;
     char *pEnd = 0;
     integerLiteral->value = std::strtoll(integerLiteral->token.literal.c_str(), &pEnd, 10);
+
+    if (peekToken.type == TokenType::DOTDOT)
+    {
+        // an integer followed by a colon is a range, can optionally be followed by a stride
+        advanceTokens(); // consume the colon
+        if (!expectPeek(TokenType::INT))
+            return nullptr;
+
+        int64_t stride = 1;
+        int64_t endValue = std::strtoll(curToken.literal.c_str(), &pEnd, 10);
+
+        if (peekToken.type == TokenType::COLON)
+        {
+            // optionally the stride
+            advanceTokens();
+            if (!expectPeek(TokenType::INT))
+                return nullptr;
+
+            stride = std::strtoll(curToken.literal.c_str(), &pEnd, 10);
+        }
+        std::unique_ptr<ast::RangeLiteral> rangeLiteral = std::make_unique<ast::RangeLiteral>();
+        rangeLiteral->token = curToken;
+        rangeLiteral->lower = integerLiteral->value;
+        rangeLiteral->upper = endValue;
+        rangeLiteral->stride = stride;
+        return rangeLiteral;
+    }
+
     return integerLiteral;
+}
+
+std::unique_ptr<ast::Expression> Parser::parseRangeLiteral()
+{
+    std::unique_ptr<ast::RangeLiteral> rangeLiteral = std::make_unique<ast::RangeLiteral>();
+    rangeLiteral->token = curToken;
+
+    if (!expectPeek(TokenType::INT))
+        return nullptr;
+
+    char *pEnd = 0;
+    rangeLiteral->lower = 0;
+    rangeLiteral->upper = std::strtoll(curToken.literal.c_str(), &pEnd, 10);
+
+    int64_t stride = 1;
+
+    if (peekToken.type == TokenType::COLON)
+    {
+        // an integer followed by a colon is a range, can optionally be followed by a stride
+        advanceTokens(); // consume the colon
+        if (!expectPeek(TokenType::INT))
+            return nullptr;
+        stride = std::strtoll(curToken.literal.c_str(), &pEnd, 10);
+    }
+    rangeLiteral->stride = stride;
+
+    return rangeLiteral;
 }
 
 std::unique_ptr<ast::Expression> Parser::parseDoubleLiteral()
@@ -916,6 +1000,8 @@ std::unique_ptr<ast::Statement> Parser::parseStatement()
         return parseReturnStatement();
     else if (curToken.type == TokenType::BREAK)
         return parseBreakStatement();
+    else if (curToken.type == TokenType::CONTINUE)
+        return parseContinueStatement();
     else if (curToken.type == TokenType::TRY)
         return parseTryExceptStatement();
     else if (curToken.type == TokenType::SCOPE)
@@ -1095,6 +1181,19 @@ std::unique_ptr<ast::BreakStatement> Parser::parseBreakStatement()
         advanceTokens();
 
     return breakStatement;
+}
+
+std::unique_ptr<ast::ContinueStatement> Parser::parseContinueStatement()
+{
+    std::unique_ptr<ast::ContinueStatement> continueStatement = std::make_unique<ast::ContinueStatement>();
+    continueStatement->token = curToken;
+
+    advanceTokens();
+
+    if (peekToken.type == TokenType::SEMICOLON)
+        advanceTokens();
+
+    return continueStatement;
 }
 
 std::unique_ptr<ast::TryExceptStatement> Parser::parseTryExceptStatement()

@@ -1,0 +1,6 @@
+let b = 0.0;
+for (a in [0,1,2]) 
+{
+    let b = a + 3;
+}
+let c = b + 5.0;

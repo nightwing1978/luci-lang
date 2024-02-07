@@ -85,7 +85,7 @@ namespace builtin
 
     std::shared_ptr<obj::Object> string_empty(const std::shared_ptr<obj::Object> &self, const std::vector<std::shared_ptr<obj::Object>> &arguments)
     {
-        auto errorObj = validateArguments("empty", self, arguments, obj::ObjectType::String, 0);
+        auto errorObj = validateArguments("is_empty", self, arguments, obj::ObjectType::String, 0);
         if (errorObj)
             return errorObj;
 
@@ -245,9 +245,9 @@ namespace builtin
         stringBuiltinType->builtinObjectType = obj::ObjectType::String;
 
         stringBuiltinType->functions = {
-            {"clear", TBuiltInFD({&builtin::string_clear, typing::makeFunctionType("", "str")})}, // "str.fn() -> str"
-            {"empty", TBuiltInFD({&builtin::string_empty, typing::makeFunctionType("", "str")})}, // "str.fn() -> str"
-            {"size", TBuiltInFD({&builtin::string_size, typing::makeFunctionType("", "int")})},   // "str.fn() -> int"
+            {"clear", TBuiltInFD({&builtin::string_clear, typing::makeFunctionType("", "str")})},     // "str.fn() -> str"
+            {"is_empty", TBuiltInFD({&builtin::string_empty, typing::makeFunctionType("", "bool")})}, // "str.fn() -> bool"
+            {"size", TBuiltInFD({&builtin::string_size, typing::makeFunctionType("", "int")})},       // "str.fn() -> int"
 
             {"starts_with", TBuiltInFD({&builtin::string_starts_with, typing::makeFunctionType("str", "bool")})}, // "str.fn() -> bool"
             {"ends_with", TBuiltInFD({&builtin::string_ends_with, typing::makeFunctionType("str", "bool")})},     // "str.fn() -> bool"

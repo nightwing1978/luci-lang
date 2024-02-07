@@ -1,0 +1,9 @@
+let A = fn() -> [double] {
+    let ret : [double] = [];
+    for (i in [0]) {
+        for (j in [0]) {
+            5;
+        }
+    }
+    return ret;
+}

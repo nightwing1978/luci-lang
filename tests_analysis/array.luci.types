@@ -1,0 +1,13 @@
+[1] a : [int]
+[2] b : int
+[4] c : [double]
+[5] d : double
+[7] e : [<double, int>]
+[8] f : <double, int>
+[10] g : [[[int]]]
+[11] h : [[int]]
+[12] i : [int]
+[13] j : int
+[15] k : int
+[16] l : [int]
+[17] m : int

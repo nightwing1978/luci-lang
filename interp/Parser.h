@@ -54,6 +54,7 @@ struct Parser
 
     Token curToken;
     Token peekToken;
+    Token peek2Token;
     std::vector<std::string> curDoc;
     bool expectPeek(TokenType expectedToken); /*< expect the peek to be as defined and request next token, otherwise error */
     Precedence curPrecedence() const;
@@ -72,6 +73,7 @@ struct Parser
     std::unique_ptr<ast::TypeStatement> parseTypeStatement();
     std::unique_ptr<ast::ReturnStatement> parseReturnStatement();
     std::unique_ptr<ast::BreakStatement> parseBreakStatement();
+    std::unique_ptr<ast::ContinueStatement> parseContinueStatement();
     std::unique_ptr<ast::TryExceptStatement> parseTryExceptStatement();
 
     // Pratt parser functions
@@ -89,7 +91,8 @@ struct Parser
     std::unique_ptr<ast::Expression> parseNull();
     std::unique_ptr<ast::Expression> parsePrefixExpression();
     std::unique_ptr<ast::Expression> parseExpression(Precedence precedence);
-    std::unique_ptr<ast::Expression> parseIntegerLiteral();
+    std::unique_ptr<ast::Expression> parseIntegerOrRangeLiteral();
+    std::unique_ptr<ast::Expression> parseRangeLiteral();
     std::unique_ptr<ast::Expression> parseDoubleLiteral();
     std::unique_ptr<ast::Expression> parseStringLiteral();
     std::unique_ptr<ast::Expression> parseBooleanLiteral();

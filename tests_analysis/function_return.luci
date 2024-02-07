@@ -1,0 +1,14 @@
+let f = fn() 
+{
+    if (true) {
+        let a = 5.0;
+        return a;
+    }
+    for (a in ["a","b"]) 
+    {
+        return a;
+    }
+    return 5;
+};
+
+let g = f();

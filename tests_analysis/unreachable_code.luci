@@ -1,0 +1,7 @@
+let a = fn() {
+    return 1;
+    return 5.0;     // naively the return value can be assumed double as well
+                    // but this code can never be reached
+}
+
+let b = a();        // the computed type is int and not <int, double>

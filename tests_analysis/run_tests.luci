@@ -1,0 +1,86 @@
+import test_help;
+import os;
+
+// check if we can find the executable to use for analysis
+let this_exe = os::absolute(arg()[0]);           // this is the absolute path to the interpreter itself
+let location = os::path.parent_path(this_exe);   
+let analysis_exe = "luci_analyze" + os::path::extension(this_exe);
+let full_analysis_exe = os::path::join([location, analysis_exe]);
+
+let tests = [
+    "array",
+    "basic_functions",
+    "basic",
+    "custom_types",
+    "dictionary",
+    "for",
+    "function_return",
+    "operations",
+    "ranges",
+    "scope",
+    "types"
+];
+
+print("Start of testing");
+
+let count_non_empty = fn(x : [str])
+{
+    let c = 0;
+    for (line : str in x)
+    {
+        if (!line.empty())
+        {
+            c += 1;
+        }
+    }
+    return c;
+}
+
+for (test in tests)
+{
+    print(" -- Running tests from ", test, " -- ");
+    let test_file = test + ".luci";
+    let golden_data_fn = test + ".luci.types";
+    let test_data_fn = os::path::join([os::temp_directory_path(), test + ".luci.test"]);
+    let test_exists = os::exists(test_file);
+    let golden_exists = os::exists(golden_data_fn);
+    if (!test_exists)
+    {
+        print(test_help::color_red, test_file, " not found", test_help::color_default);
+        continue;
+    }
+    if (!golden_exists)
+    {
+        print(test_help::color_red, golden_data_fn, " not found", test_help::color_default);
+        continue;
+    }
+    let cmd = full_analysis_exe + " " + test + ".luci > " + test_data_fn;
+    let rv = os::system(cmd);
+    if (rv != 0)
+    {
+        print(test_help::color_red, test_file, " analysis failed", test_help::color_default);
+        continue;
+    }
+
+    // tests have ran, now compare the output against the golden data
+    let gd = open(golden_data_fn,"r");
+    let golden_data = gd.read_lines();
+
+    let td = open(test_data_fn, "r");
+    let test_data = td.read_lines();
+
+    if (golden_data!=test_data) 
+    {
+        print(test_help::color_red, test_file, " mismatch", test_help::color_default);
+        print("Golden");
+        print(golden_data);
+        print("Test");
+        print(test_data);
+    }
+    else
+    {
+        let test_count = count_non_empty(test_data);
+        print(test_count, " tests ok");
+    }
+}
+

@@ -82,6 +82,7 @@ namespace
         {TokenType::FOR, "for"},
         {TokenType::TRY, "try"},
         {TokenType::EXCEPT, "except"},
+        {TokenType::CONTINUE, "continue"},
     };
 }
 
@@ -115,16 +116,6 @@ std::string readIdentifier(Lexer &lexer)
 {
     size_t position = lexer.position;
     while (isalpha(lexer.ch) || isdigit(lexer.ch) || lexer.ch == '_')
-    {
-        readChar(lexer);
-    }
-    return lexer.input.substr(position, lexer.position - position);
-}
-
-std::string readNumber(Lexer &lexer)
-{
-    size_t position = lexer.position;
-    while (isdigit(lexer.ch))
     {
         readChar(lexer);
     }
@@ -232,6 +223,7 @@ Token readSingleLineCommentToken(Lexer &lexer)
     token.literal = lexer.input.substr(position, lexer.position - position);
     token.type = TokenType::COMMENT;
     token.fileName = lexer.fileName;
+    lexer.lineNumber += 1;
     return token;
 }
 
@@ -265,7 +257,7 @@ Token readNumberToken(Lexer &lexer)
     {
         readChar(lexer);
     }
-    if (lexer.ch == '.')
+    if (lexer.ch == '.' && peekChar(lexer) != '.')
     {
         readChar(lexer);
         token.type = TokenType::DOUBLE;
@@ -561,7 +553,17 @@ Token nextToken(Lexer &lexer)
         token.fileName = lexer.fileName;
         return token;
     case '.':
-        token = newToken(TokenType::DOT, lexer.ch, lexer.lineNumber, lexer.columnNumber, lexer.fileName);
+        if (peekChar(lexer) == '.')
+        {
+            const char ch = lexer.ch;
+            readChar(lexer);
+            std::string fullLiteral;
+            fullLiteral.push_back(ch);
+            fullLiteral.push_back(lexer.ch);
+            token = newToken(TokenType::DOTDOT, fullLiteral, lexer.lineNumber, lexer.columnNumber, lexer.fileName);
+        }
+        else
+            token = newToken(TokenType::DOT, lexer.ch, lexer.lineNumber, lexer.columnNumber, lexer.fileName);
         break;
     case 0:
         token = newToken(TokenType::EOF_T, '\0', lexer.lineNumber, lexer.columnNumber, lexer.fileName);

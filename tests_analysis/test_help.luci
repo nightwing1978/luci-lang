@@ -1,0 +1,48 @@
+let color_default = "\033[0m";
+let color_black = "\033[30m";
+let color_red = "\033[31m";
+let color_green = "\033[32m";
+
+/! test if the result from value and otherValue are equal, if not print a message and stop
+let test_eq = fn(value : any, otherValue : any, msg : str) 
+{
+    if (value != otherValue) 
+    {
+        print(color_red, "Comparison failure: ", msg, ":<", value, ">!=<", otherValue,">", color_default);
+        exit(1);
+    } 
+    else 
+    {
+        print("Test passed: ", msg);
+    }
+};
+
+
+/! test if the result from value and otherValue are not equal, if not print a message and stop
+let test_neq = fn(value : any, otherValue : any, msg : str) 
+{
+    if (value == otherValue) 
+    {
+        print(color_red, "Comparison failure: ", msg, ":", value, "==", otherValue, color_default);
+        exit(1);
+    } 
+    else 
+    {
+        print("Test passed: ", msg);
+    }
+};
+
+
+/! test if the function returns an error, if not print a message and stop
+let test_error = fn(function : any, msg : str) 
+{
+    try 
+    {
+        function();
+        print(color_red, "Was expecting an error : ", msg, color_default);
+    }
+    except (e)
+    {
+        print("Test passed: ", msg);
+    }
+}

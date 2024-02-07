@@ -1,0 +1,4 @@
+[1] a : int
+[2] b : double
+[3] c : str
+[4] d : bool

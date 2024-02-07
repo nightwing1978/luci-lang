@@ -100,6 +100,9 @@ enum class TokenType
 
     TRY = 60,
     EXCEPT = 61,
+
+    CONTINUE = 62,
+    DOTDOT = 63,
 };
 
 std::string toString(TokenType tokenType);

@@ -73,6 +73,8 @@ namespace ast
         ImportStatement = 46,
         ModuleIdentifier = 47,
         TryExceptStatement = 48,
+        ContinueStatement = 49,
+        RangeLiteral = 50,
     };
 
     enum class MarkedAsBuiltin
@@ -144,7 +146,7 @@ namespace ast
         virtual std::unique_ptr<TypeExpression> clone() const override
         {
             auto typeChoice = std::make_unique<ast::TypeChoice>();
-            for (const auto &type : typeChoice->choices)
+            for (const auto &type : choices)
                 typeChoice->choices.push_back(type->clone());
             return typeChoice;
         };
@@ -158,7 +160,8 @@ namespace ast
         virtual std::unique_ptr<TypeExpression> clone() const override
         {
             auto typeArray = std::make_unique<ast::TypeArray>();
-            typeArray->elementType = elementType->clone();
+            if (elementType)
+                typeArray->elementType = elementType->clone();
             return typeArray;
         };
         TypeArray() : TypeExpression(NodeType::TypeArray){};
@@ -172,8 +175,10 @@ namespace ast
         virtual std::unique_ptr<TypeExpression> clone() const override
         {
             auto typeDict = std::make_unique<ast::TypeDictionary>();
-            typeDict->keyType = keyType->clone();
-            typeDict->valueType = valueType->clone();
+            if (keyType)
+                typeDict->keyType = keyType->clone();
+            if (valueType)
+                typeDict->valueType = valueType->clone();
             return typeDict;
         };
 
@@ -187,7 +192,8 @@ namespace ast
         virtual std::unique_ptr<TypeExpression> clone() const override
         {
             auto typeSet = std::make_unique<ast::TypeSet>();
-            typeSet->elementType = elementType->clone();
+            if (elementType)
+                typeSet->elementType = elementType->clone();
             return typeSet;
         };
 
@@ -202,9 +208,15 @@ namespace ast
         virtual std::unique_ptr<TypeExpression> clone() const override
         {
             auto typeFunc = std::make_unique<ast::TypeFunction>();
-            typeFunc->returnType = returnType->clone();
+            if (returnType)
+                typeFunc->returnType = returnType->clone();
             for (const auto &argType : argTypes)
-                typeFunc->argTypes.push_back(argType->clone());
+            {
+                if (argType)
+                    typeFunc->argTypes.push_back(argType->clone());
+                else
+                    typeFunc->argTypes.push_back(nullptr);
+            }
             return typeFunc;
         };
         TypeFunction() : TypeExpression(NodeType::TypeFunction){};
@@ -217,6 +229,7 @@ namespace ast
         virtual std::unique_ptr<TypeExpression> clone() const override
         {
             auto typeType = std::make_unique<ast::TypeType>();
+            typeType->value = value;
             return typeType;
         };
         TypeType() : TypeExpression(NodeType::TypeType){};
@@ -312,6 +325,16 @@ namespace ast
         virtual std::string text(int indent = 0) const override;
         IntegerLiteral() : Expression(NodeType::IntegerLiteral){};
     };
+
+    struct RangeLiteral : public Expression
+    {
+        int64_t lower = 0;
+        int64_t upper = 1;
+        int64_t stride = 1;
+        virtual std::string text(int indent = 0) const override;
+        RangeLiteral() : Expression(NodeType::RangeLiteral){};
+    };
+ 
 
     struct DoubleLiteral : public Expression
     {
@@ -485,19 +508,19 @@ namespace ast
 
     struct TypeStatement : public Statement
     {
-        bool constant = false;
-        Identifier name;
-        std::unique_ptr<TypeExpression> exprType;
-        std::unique_ptr<Expression> value;
+        bool constant = false;                    /*< when the member was defined as constant */
+        Identifier name;                          /*< name of the member of the type */
+        std::unique_ptr<TypeExpression> exprType; /*< optionally a declared type of the type statement */
+        std::unique_ptr<Expression> value;        /*< the content of the type statement*/
         virtual std::string text(int indent = 0) const override;
         TypeStatement() : Statement(NodeType::TypeStatement){};
     };
 
     struct TypeLiteral : public Expression
     {
-        std::string name;
-        std::string doc;
-        std::vector<std::unique_ptr<TypeStatement>> definitions;
+        std::string name;                                        /*< name of the type */
+        std::string doc;                                         /*< optionally associated documentation */
+        std::vector<std::unique_ptr<TypeStatement>> definitions; /*< list of definitions belong to the type */
         virtual std::string text(int indent = 0) const override;
         TypeLiteral() : Expression(NodeType::TypeLiteral){};
     };
@@ -513,6 +536,12 @@ namespace ast
     {
         virtual std::string text(int indent = 0) const override;
         BreakStatement() : Statement(NodeType::BreakStatement){};
+    };
+
+    struct ContinueStatement : public Statement
+    {
+        virtual std::string text(int indent = 0) const override;
+        ContinueStatement() : Statement(NodeType::ContinueStatement){};
     };
 
     struct TryExceptStatement : public Statement

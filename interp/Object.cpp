@@ -13,6 +13,7 @@
 #include "Ast.h"       // to support function evaluation, knowing the type hierarchy from Node->BlockStatement
 
 #include <sstream>
+#include <cstdlib>
 
 namespace obj
 {
@@ -106,6 +107,41 @@ namespace obj
         ++instancesDestructed;
     };
 
+    std::string Object::inspect() const
+    {
+        return std::string();
+    };
+
+    std::size_t Object::hash() const
+    {
+        return 0;
+    };
+
+    bool Object::hashAble() const
+    {
+        return false;
+    };
+
+    bool Object::eq(const Object *other) const
+    {
+        return false;
+    };
+
+    std::shared_ptr<Object> Object::clone() const
+    {
+        return nullptr;
+    };
+
+    void *Object::operator new(size_t size)
+    {
+        return std::malloc(size);
+    }
+
+    void Object::operator delete(void *ptr)
+    {
+        std::free(ptr);
+    }
+
     String::~String(){};
 
     Module::Module() : Object(ObjectType::Module)
@@ -159,7 +195,15 @@ namespace obj
 
     std::string Range::inspect() const
     {
-        return std::to_string(lower) + ":" + std::to_string(upper) + ":" + std::to_string(stride);
+        return std::to_string(lower) + ".." + std::to_string(upper) + ":" + std::to_string(stride);
+    }
+
+    bool Range::eq(const Object *other) const
+    {
+        if (other->type != type)
+            return false;
+        auto otherRange = static_cast<const Range *>(other);
+        return otherRange->lower == lower && otherRange->upper == upper && otherRange->stride == stride;
     }
 
     int64_t Range::length() const
@@ -201,6 +245,11 @@ namespace obj
     std::string BreakValue::inspect() const
     {
         return "Break()";
+    }
+
+    std::string ContinueValue::inspect() const
+    {
+        return "Continue()";
     }
 
     std::string Error::inspect() const
@@ -477,7 +526,7 @@ namespace obj
         fStream->write(bytes.data(), bytes.size());
     }
 
-        Regex::Regex(const std::regex &re) : Object(ObjectType::Regex)
+    Regex::Regex(const std::regex &re) : Object(ObjectType::Regex)
     {
         regex = std::make_shared<std::regex>(re);
     }
@@ -491,4 +540,31 @@ namespace obj
         return "<regex>";
     }
 
-}
+    // std::string Clock::inspect() const
+    // {
+    //     return "<clock>";
+    // }
+
+    // Clock::Clock()
+    // {
+    //     clock_.reset(new std::chrono::steady_clock);
+    // }
+
+    // Clock::~Clock()
+    // {
+    // }
+
+    // std::string TimePoint::inspect() const
+    // {
+    //     return "<time_point>";
+    // }
+
+    // TimePoint::TimePoint(const TTimePoint &tp)
+    // {
+    //     timePoint = tp;
+    // }
+
+    // TimePoint::~TimePoint()
+    // {
+    // }
+};
