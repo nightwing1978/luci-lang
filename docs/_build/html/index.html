@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to luci’s documentation! &mdash; luci  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="source/chapter-1.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            luci
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-1.html">1 - Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-2.html">2 - Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-3.html">3 - Built-in functions and modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-4.html">4 - Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">luci</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to luci’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-luci-s-documentation">
+<h1>Welcome to luci’s documentation!<a class="headerlink" href="#welcome-to-luci-s-documentation" title="Permalink to this heading"></a></h1>
+<aside class="sidebar">
+<p class="sidebar-title">About</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</aside>
+<p>Luci is an optionally typed scripting language.  It is developed in C++, has no external dependencies and is about learning what it takes to create a realistic (scripted) programming language.  It has its roots in <a class="reference external" href="https://interpreterbook.com/">https://interpreterbook.com/</a>.</p>
+<dl class="simple">
+<dt>Luci has following:</dt><dd><ul class="simple">
+<li><p>A syntax that is a mix of C, C++ and Python</p></li>
+<li><p>Supports imperative, object-oriented and functional style of programming</p></li>
+<li><p>Supports optional typing</p></li>
+<li><p>REPL</p></li>
+</ul>
+</dd>
+</dl>
+<p>It has most features that are expected from a scripting language.</p>
+<dl class="simple">
+<dt>Base Types:</dt><dd><ul class="simple">
+<li><p>Null</p></li>
+<li><p>Boolean: true and false</p></li>
+<li><p>Integer: int that is 64-bit wide</p></li>
+<li><p>Float: 64-bit floating point real numbers</p></li>
+<li><p>Complex: 64-bit floating point complex numbers</p></li>
+<li><p>Strings: a sequence of characters</p></li>
+</ul>
+</dd>
+<dt>Ohter Types:</dt><dd><ul class="simple">
+<li><p>List: [1,2,3]</p></li>
+<li><p>Dictionary: { 1 : “1”, 2 : “2” }</p></li>
+<li><p>Sets: { 1, 2, 3 }</p></li>
+<li><p>Range: 0..5:2 a range of integers with a lower, excluding upper with optional stride</p></li>
+<li><p>Regex: match and search for strings using regular expressions</p></li>
+</ul>
+</dd>
+<dt>Control Structures:</dt><dd><ul class="simple">
+<li><p>Conditionals: if {} else {}</p></li>
+<li><p>For-loops: for (x in y) {}</p></li>
+<li><p>While-loops: while (condition) {}</p></li>
+</ul>
+</dd>
+<dt>Functions:</dt><dd><ul class="simple">
+<li><p>Functions: let foo = fn(x) { }</p></li>
+<li><p>Closures: let foo = fn(x, y) { fn(z) { x+y+z} }; let bar = foo(1,2); bar(3);</p></li>
+<li><p>Anonymous functions: sorted([1,2], fn(a,b) {return a&gt;b} )</p></li>
+</ul>
+</dd>
+<dt>Typing:</dt><dd><ul class="simple">
+<li><p>Optionally type variables: let a : double = 5.0;</p></li>
+<li><p>Enforce type compatibility: let a: double = 5.0; a=1;  // fails</p></li>
+</ul>
+</dd>
+<dt>Types:</dt><dd><ul class="simple">
+<li><p>Custom type definitions: type custom { … }</p></li>
+<li><p>Custom constructors and destructors: type custom { construct() = fn() {} }</p></li>
+</ul>
+</dd>
+<dt>Documentation:</dt><dd><ul class="simple">
+<li><p>Doc-strings for functions</p></li>
+<li><p>Doc-strings at type and method level</p></li>
+<li><p>Request doc-strings: print(doc(my_function));</p></li>
+</ul>
+</dd>
+<dt>Exceptions:</dt><dd><ul class="simple">
+<li><p>Raise exceptions by returning an error: if (problem) { return error(“Problem”, error::type::TypeError); }</p></li>
+<li><p>Capture exceptions: try { return error(“Problem”, error::type::TypeError); }  except (d) { print(“Problem found”, d); }</p></li>
+</ul>
+</dd>
+<dt>Scope and lifetime control:</dt><dd><ul class="simple">
+<li><p>Block statement: scope { let a = 0;}</p></li>
+</ul>
+</dd>
+<dt>Modules:</dt><dd><ul class="simple">
+<li><p>Module import and scoping: import foo; foo::bar();</p></li>
+</ul>
+</dd>
+</dl>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-1.html">1 - Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-1.html#build">1. Build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-1.html#repl-environment">2. REPL environment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-2.html">2 - Language</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#hello-world">1. Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#basic-types">2. Basic types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-2.html#numbers">2.1 Numbers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-2.html#strings">2.2 Strings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#collections-and-ranges">3. Collections and ranges</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-2.html#range">3.1 Range</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#control-structures">4. Control Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#functions">5. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#typing">6. Typing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-2.html#specifying-a-type">6.1 Specifying a type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-2.html#compound-types">6.1 Compound types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#exception-handling">7. Exception Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#custom-types">8. Custom types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#documenting">9. Documenting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-2.html#modules">10. Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-3.html">3 - Built-in functions and modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#functions">1. Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-3.html#array-functions">1.1 Array functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-3.html#dictionary-functions">1.2 Dictionary functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-3.html#string-conversion">1.3 String conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-3.html#i-o-functions">1.3 I/O functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#module-overview">2. Module overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#error-type">3. error_type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#json">4. json</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#math">5. math</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#os">6. os</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/chapter-3.html#os-path">6.1 os::path</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#regex">7. regex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#time">8. time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#threading">9. threading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-3.html#typing">10. typing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/chapter-4.html">4 - Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/chapter-4.html#luci-analyze">1. luci-analyze</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="source/chapter-1.html" class="btn btn-neutral float-right" title="Getting started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2024, TheWallSoft.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

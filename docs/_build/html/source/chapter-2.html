@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Language &mdash; luci  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Built-in functions and modules" href="chapter-3.html" />
+    <link rel="prev" title="Getting started" href="chapter-1.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            luci
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chapter-1.html">1 - Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2 - Language</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hello-world">1. Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-types">2. Basic types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#numbers">2.1 Numbers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#strings">2.2 Strings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#collections-and-ranges">3. Collections and ranges</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#range">3.1 Range</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#control-structures">4. Control Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#functions">5. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typing">6. Typing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#specifying-a-type">6.1 Specifying a type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compound-types">6.1 Compound types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#exception-handling">7. Exception Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-types">8. Custom types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documenting">9. Documenting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#modules">10. Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter-3.html">3 - Built-in functions and modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter-4.html">4 - Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">luci</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Language</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/chapter-2.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="language">
+<h1>Language<a class="headerlink" href="#language" title="Permalink to this heading"></a></h1>
+<section id="hello-world">
+<h2>1. Hello World<a class="headerlink" href="#hello-world" title="Permalink to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">print</span></code> will display on the standard output.  To display information on the error output, use <code class="docutils literal notranslate"><span class="pre">eprint</span></code>.</p>
+<p>Requesting input from a user on standard-in is done through <code class="docutils literal notranslate"><span class="pre">input_line</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">user_input</span> <span class="o">=</span> <span class="n">input_line</span><span class="p">(</span><span class="s2">&quot;Prompt:&quot;</span><span class="p">);</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;User provided:&quot;</span><span class="p">,</span> <span class="n">user_input</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="basic-types">
+<h2>2. Basic types<a class="headerlink" href="#basic-types" title="Permalink to this heading"></a></h2>
+<section id="numbers">
+<h3>2.1 Numbers<a class="headerlink" href="#numbers" title="Permalink to this heading"></a></h3>
+<p>Luci supports a number of basic types, such as numbers.  Both integers as well as floats.  Both are 64-bit wide.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">5</span><span class="p">;</span>
+<span class="n">let</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="mf">5.0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>There is no support for mixed type operations.  Adding an integer to a float will result in an error.  To work with mixed types an explicit conversion is required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+<span class="n">let</span> <span class="n">b</span> <span class="o">=</span> <span class="n">to_double</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="mf">5.0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>complex numbers are native types, they are constructed by using the function <cite>complex</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">c</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="strings">
+<h3>2.2 Strings<a class="headerlink" href="#strings" title="Permalink to this heading"></a></h3>
+<p>In Luci text is stored in strings.  Strings are of the type <cite>str</cite> (more on types later).  Adressing parts of a string will again yield a string, even if the outcome is the equivalent of one character.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">t</span> <span class="o">=</span> <span class="s2">&quot;text&quot;</span><span class="p">;</span>     <span class="o">//</span> <span class="n">a</span> <span class="n">string</span>
+<span class="n">let</span> <span class="n">c</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>       <span class="o">//</span> <span class="n">again</span> <span class="n">a</span> <span class="n">string</span>
+</pre></div>
+</div>
+<p>Luci does not support any encoding schemes at this moment. Slicing is also support using a range object.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">t</span> <span class="o">=</span> <span class="s2">&quot;text&quot;</span><span class="p">;</span>         <span class="o">//</span> <span class="n">a</span> <span class="n">string</span>
+<span class="n">let</span> <span class="n">s</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mf">0..2</span><span class="p">];</span>        <span class="o">//</span> <span class="n">a</span> <span class="n">string</span> <span class="n">of</span> <span class="n">the</span> <span class="n">first</span> <span class="n">two</span> <span class="n">characters</span>
+</pre></div>
+</div>
+<p>Strings have a number of functions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">clear</span></code>: clears a string and returns itself</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_empty</span></code>: return a boolean if the string is empty or not</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>: returns the length of the string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">starts_with</span></code>: return a boolean if a string starts with another given string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ends_with</span></code>: return a boolean if a string ends with another given string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find</span></code>: returns the index of the given string, returns -1 when not found</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replace</span></code>: replaces all occurences of a given string with another one</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">split</span></code>: split a given string into a list of strings using any of given separators, the list of separators is also passed in as string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">join</span></code>: join a given list of strings by using the string and returning the joined string</p></li>
+</ul>
+<p>More advanced string manipulation can be found in the <code class="docutils literal notranslate"><span class="pre">regex</span></code> module.</p>
+</section>
+</section>
+<section id="collections-and-ranges">
+<h2>3. Collections and ranges<a class="headerlink" href="#collections-and-ranges" title="Permalink to this heading"></a></h2>
+<p>There are three main types of collections: a list, dictionary and set.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="s2">&quot;bla&quot;</span><span class="p">];</span>      <span class="o">//</span> <span class="n">a</span> <span class="nb">list</span> <span class="n">can</span> <span class="n">contain</span> <span class="nb">any</span> <span class="n">values</span>
+<span class="n">let</span> <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="s2">&quot;b&quot;</span><span class="p">};</span>     <span class="o">//</span> <span class="n">a</span> <span class="n">dictionary</span> <span class="n">maps</span> <span class="n">a</span> <span class="n">key</span> <span class="n">to</span> <span class="n">a</span> <span class="n">value</span>
+<span class="n">let</span> <span class="n">s</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">};</span>
+</pre></div>
+</div>
+<p>A list can contain values of any kind.  Internally a list of doubles and complex numbers is treated differently and more efficiently when possible.</p>
+<p>Items used as a key in a dictionary or set needs to be so called <cite>hashable</cite>.  The basic types like a boolean, integer, float and strings are all hashable
+types.  Compound types like a list, set or dictionary are only <cite>hashable</cite> when they are in <cite>frozen</cite> state and immutable.</p>
+<section id="range">
+<h3>3.1 Range<a class="headerlink" href="#range" title="Permalink to this heading"></a></h3>
+<p>A range is a special type that represents a range of integer numbers with an optional stride.  Ranges can be constructed with the built-in <code class="docutils literal notranslate"><span class="pre">range</span></code> function, but there is also a dedicated syntax.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">r</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span>     <span class="o">//</span> <span class="n">a</span> <span class="nb">range</span> <span class="n">covering</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span>
+<span class="n">let</span> <span class="n">s</span> <span class="o">=</span> <span class="mf">0..5</span><span class="p">;</span>           <span class="o">//</span> <span class="n">a</span> <span class="nb">range</span> <span class="n">covering</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span>
+<span class="n">let</span> <span class="n">t</span> <span class="o">=</span> <span class="mf">0..5</span><span class="p">:</span><span class="mi">2</span><span class="p">;</span>         <span class="o">//</span> <span class="nb">range</span> <span class="k">with</span> <span class="n">stride</span> <span class="mi">2</span> <span class="n">covering</span> <span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span>
+</pre></div>
+</div>
+<p>Ranges can be used to index into arrays and strings.</p>
+</section>
+</section>
+<section id="control-structures">
+<h2>4. Control Structures<a class="headerlink" href="#control-structures" title="Permalink to this heading"></a></h2>
+<p>Control structures that are supported are if-then-else, for-loop and while-loops.  The statements that they control all need to be scoped using <cite>{</cite>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">true</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Value was true&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Value was false&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>While loops are executed while the condition remains true.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+<span class="k">while</span> <span class="p">(</span><span class="n">a</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Value of a=&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">);</span>
+    <span class="n">a</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For loops always need an iterable object.  Iterable objects are arrays, strings, sets, ranges and dictionaries.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="k">for</span> <span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="s2">&quot;bla&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">}</span>
+<span class="n">b</span>
+<span class="n">l</span>
+<span class="n">a</span>
+</pre></div>
+</div>
+<p>The <cite>break</cite> statement allows to break out of the scope where it is used, both for while and for loops.  The <cite>continue</cite> statement will jump
+forward to the end of the scope.</p>
+</section>
+<section id="functions">
+<h2>5. Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<p>Functions are objects like any other and are defined in a similar way.  The difference is that they have the <cite>fn</cite> keyword to
+indicate a function definition follows.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">fibonacci</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span> <span class="n">x</span> <span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">fibonacci</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">fibonacci</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;fibonacci(5)=&quot;</span><span class="p">,</span> <span class="n">fibonacci</span><span class="p">(</span><span class="mi">5</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>After the <cite>fn</cite> the list of formal parameters follows, followed by the function body.  <cite>return</cite> can be used to return from the given function.
+The return value of the function is either the value given by the <cite>return</cite> statement or the last evaluated statement.  In example below
+the function <cite>give_five</cite> returns 5.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">give_five</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span> <span class="p">)</span> <span class="p">{</span> <span class="mi">5</span><span class="p">;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>Functions are allow to be recursive as shown in <cite>fibonacci</cite> and capture their environment, becoming a closure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">f</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">let</span> <span class="n">g</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">g</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)(</span><span class="mi">5</span><span class="p">));</span>
+</pre></div>
+</div>
+</section>
+<section id="typing">
+<h2>6. Typing<a class="headerlink" href="#typing" title="Permalink to this heading"></a></h2>
+<p>Typing is optional in Luci.  When no type is explicitly declared, then the type is <cite>all</cite> which matches to any other type.
+This also means the type can change during its lifetime.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+<span class="n">a</span> <span class="o">=</span> <span class="s2">&quot;now a string&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>and</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="p">:</span> <span class="nb">all</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+<span class="n">a</span> <span class="o">=</span> <span class="s2">&quot;now a string&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>are equivalent from a typing perspective.  There is also another special type <cite>any</cite> which also matches any other specific type,
+but then pins the type to the variable declaration.  <cite>any</cite> is convenient to avoid the need to be specific on the type but
+signal that the type cannot change during the lifetime of the variable.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="p">:</span> <span class="nb">any</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+<span class="n">a</span> <span class="o">=</span> <span class="s2">&quot;now a string&quot;</span><span class="p">;</span>     <span class="o">//</span> <span class="n">this</span> <span class="n">will</span> <span class="n">produce</span> <span class="n">a</span> <span class="ne">TypeError</span>
+</pre></div>
+</div>
+<section id="specifying-a-type">
+<h3>6.1 Specifying a type<a class="headerlink" href="#specifying-a-type" title="Permalink to this heading"></a></h3>
+<p>A type is specified by declaring it during a let variable statement, a formal parameter or a return value.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="p">:</span> <span class="n">double</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+<span class="n">let</span> <span class="n">f</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span> <span class="n">a</span> <span class="p">:</span> <span class="nb">int</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="n">let</span> <span class="n">g</span> <span class="p">:</span> <span class="n">fn</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span> <span class="n">a</span> <span class="p">:</span> <span class="nb">int</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">3</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The stringified value of a type of an object can be requested using the <cite>type_str</cite>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="p">:</span> <span class="n">double</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">type_str</span><span class="p">(</span><span class="n">a</span><span class="p">));</span>     <span class="o">//</span> <span class="n">will</span> <span class="nb">print</span> <span class="s2">&quot;double&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="compound-types">
+<h3>6.1 Compound types<a class="headerlink" href="#compound-types" title="Permalink to this heading"></a></h3>
+<p>The type system allows for defining compound types, such as those of an array, dictionary or set.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">a</span> <span class="p">:</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">];</span>
+<span class="n">let</span> <span class="n">b</span> <span class="p">:</span> <span class="p">[</span><span class="n">double</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">];</span>
+<span class="n">let</span> <span class="n">c</span> <span class="p">:</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">double</span><span class="p">,</span> <span class="nb">int</span><span class="o">&gt;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>The <cite>&lt;&gt;</cite> construct is used to enumerate the possible choices of types that are accepted.  An example for dictionary type definition is below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">d</span> <span class="p">:</span> <span class="p">{</span> <span class="nb">int</span> <span class="p">:</span> <span class="o">&lt;</span><span class="n">double</span><span class="p">,</span> <span class="nb">str</span><span class="o">&gt;</span><span class="p">}</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">:</span> <span class="s2">&quot;zero&quot;</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="mf">1.0</span> <span class="p">};</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="exception-handling">
+<h2>7. Exception Handling<a class="headerlink" href="#exception-handling" title="Permalink to this heading"></a></h2>
+<p>Luci supports exception handling.  Exception are <cite>error</cite> being returned from a function or program.  If the <cite>error</cite> is not catched it will
+continue to propagate until it does or the program ends.  There is no special syntax to raise or throw them, creating the error or returning
+it from a function is enough.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">error_type</span><span class="p">;</span>
+<span class="k">try</span>
+<span class="p">{</span>
+    <span class="n">let</span> <span class="n">a</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">except</span> <span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">error_type</span><span class="p">(),</span> <span class="n">error_type</span><span class="o">.</span><span class="n">type_error</span><span class="p">,</span> <span class="s2">&quot;type error on assignment&quot;</span><span class="p">);</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Exception can be nested.  Requesting more information of what happened can be done using the built-in methods on the <cite>error</cite> type:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>message(): return the message part of the exception/error</p></li>
+<li><p>error_type(): an integer representing the error type</p></li>
+<li><p>file_name(): the filename where the error occured originally occured</p></li>
+<li><p>line(): the line in the filename where the error occured originally occured</p></li>
+<li><p>column(): the column in the filename where the error occured originally occured</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="custom-types">
+<h2>8. Custom types<a class="headerlink" href="#custom-types" title="Permalink to this heading"></a></h2>
+<p>New types can be defined, a type can have properties and methods.  There are two special methods <cite>construct</cite> and <cite>destruct</cite> that are
+called respectively at the begin and end of the lifetime of the ojects created in this type.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span> <span class="n">custom</span>
+<span class="p">{</span>
+    <span class="n">a</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="n">const</span> <span class="n">b</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+
+    <span class="n">construct</span> <span class="o">=</span> <span class="n">fn</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">null</span> <span class="p">{</span> <span class="n">this</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="k">return</span> <span class="n">null</span><span class="p">;};</span>
+    <span class="n">destruct</span> <span class="o">=</span> <span class="n">fn</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">null</span> <span class="p">{</span> <span class="k">return</span> <span class="n">null</span><span class="p">;</span> <span class="p">};</span>
+    <span class="n">get_a</span> <span class="o">=</span> <span class="n">fn</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="p">{</span> <span class="k">return</span> <span class="n">this</span><span class="o">.</span><span class="n">a</span><span class="p">;</span> <span class="p">};</span>
+    <span class="n">get_a_plus_1</span> <span class="o">=</span> <span class="n">fn</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="p">{</span> <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">this</span><span class="o">.</span><span class="n">a</span><span class="p">;</span> <span class="p">};</span>
+<span class="p">};</span>
+
+<span class="n">let</span> <span class="n">c</span> <span class="p">:</span> <span class="n">custom</span> <span class="o">=</span> <span class="n">custom</span><span class="p">();</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">get_a</span><span class="p">());</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">a</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Within a method the object can be referenced by <cite>this</cite>.  The methods do not capture environment and do not act as closures.</p>
+</section>
+<section id="documenting">
+<h2>9. Documenting<a class="headerlink" href="#documenting" title="Permalink to this heading"></a></h2>
+<p>Documentation can be attached to functions, custom types, custom types their method and properties.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/! documentation for function a
+let a = fn() -&gt; null
+{
+    return null;
+}
+
+/! documentation for function b
+/! running over multiple lines
+let b = fn() -&gt; null
+{
+    return null;
+}
+
+/! documentation for custom type Custom
+type Custom
+{
+    /! documentation for function Custom.c
+    c = fn() -&gt; null { return null; }
+};
+</pre></div>
+</div>
+<p>The special syntax of <cite>/!</cite> is used to indicate the start of a documentation string.  Requesting the documentation programmatically
+is done through the <cite>doc</cite> function called on the object, type or method.</p>
+</section>
+<section id="modules">
+<h2>10. Modules<a class="headerlink" href="#modules" title="Permalink to this heading"></a></h2>
+<p>Modules can be used to organize code.  A module is loaded by the <cite>import</cite> statement.  When the module is the first time loaded all
+code in it is executed, including any top level statements.  When the module has been loaded, it can be loaded again, but the code will
+not be executed twice or more.</p>
+<p>Methods and variables in a module can be referenced using the <cite>::</cite> syntax.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">test_module</span><span class="p">;</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;test_module::name=&quot;</span><span class="p">,</span> <span class="n">test_module</span><span class="p">::</span><span class="n">name</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>For above to work there needs to be a file named <cite>test_module.luci</cite> in the same directory where the code will execute.  Nesting of
+modules is allowed and will use the file system to organize.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="chapter-1.html" class="btn btn-neutral float-left" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chapter-3.html" class="btn btn-neutral float-right" title="Built-in functions and modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2024, TheWallSoft.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

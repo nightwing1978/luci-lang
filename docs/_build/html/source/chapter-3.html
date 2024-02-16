@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Built-in functions and modules &mdash; luci  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tools" href="chapter-4.html" />
+    <link rel="prev" title="Language" href="chapter-2.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            luci
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chapter-1.html">1 - Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter-2.html">2 - Language</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3 - Built-in functions and modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#functions">1. Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#array-functions">1.1 Array functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dictionary-functions">1.2 Dictionary functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#string-conversion">1.3 String conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#i-o-functions">1.3 I/O functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-overview">2. Module overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-type">3. error_type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#json">4. json</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#math">5. math</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#os">6. os</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#os-path">6.1 os::path</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#regex">7. regex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#time">8. time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#threading">9. threading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typing">10. typing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter-4.html">4 - Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">luci</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Built-in functions and modules</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/chapter-3.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="built-in-functions-and-modules">
+<h1>Built-in functions and modules<a class="headerlink" href="#built-in-functions-and-modules" title="Permalink to this heading"></a></h1>
+<section id="functions">
+<h2>1. Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">type_str</span></code>: fn(all) -&gt; str : return the type of an object in a string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">error</span></code>: fn(str, int) -&gt; error : create an error with given message and number indicating its type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clone</span></code>: fn(any) -&gt; any: returns a clone of the given object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">doc</span></code>: fn(any) -&gt; str: returns the doc string for a given object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">print</span></code>: fn(any) -&gt; str: returns the doc string for a given object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eprint</span></code>: fn(any) -&gt; str: returns the doc string for a given object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_line</span></code>: fn(str) -&gt; str: returns the string from the standard input device</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">version</span></code>: fn() -&gt; [int]: returns the version as an array of 3 integers, [major, minor, patch]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arg</span></code>: fn() -&gt; [str]: returns the command line arguments as an array of string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code>: fn(str, all) -&gt; str: format a string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run</span></code>: fn(str) -&gt; null: run the script in the given filename</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run_once</span></code>: fn(str) -&gt; null: run the script in the given filename once over the lifetime of the overall program</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exit</span></code>: fn(int) -&gt; null: exit the program/interpreter with given error code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scope_names</span></code>: fn() -&gt; [str]: returns the list of names of identifiers visible in the current scope</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">array</span></code>: fn() -&gt; [all]: create an array</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">array_double</span></code>: fn() -&gt; [double]: create an array of doubles</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">array_complex</span></code>: fn() -&gt; [complex]: create an array of complex</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">complex</span></code>: fn(double, double) -&gt; complex: create a complex number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code>: fn() -&gt; {all:all}: create an empty dictionary</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">set</span></code>: fn() -&gt; {all}: create an empty set</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">range</span></code>: fn(int) -&gt; range: create a range with given upper bound</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">range</span></code>: fn(int, int) -&gt; range: create a range with given lower and upper bound</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">range</span></code>: fn(int, int, int) -&gt; range: create a range with given lower, upper bound and stride</p></li>
+</ul>
+<section id="array-functions">
+<h3>1.1 Array functions<a class="headerlink" href="#array-functions" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">append</span></code>: fn([all], all) -&gt; [all]: append an object to an array</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slice</span></code>: fn([all], int,int ) -&gt; [all]: return a slice of an array</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slice</span></code>: fn([all], range ) -&gt; [all]: return a slice of an array defined by a range</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: fn([all], int, all ) -&gt; [all]: update an element in the array with a new object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rotate</span></code>: fn([all], int ) -&gt; [all]: rotate an array with given amount</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reverse</span></code>: fn([all]) -&gt; [all]: reverse an array, returns a reference to self</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sort</span></code>: fn([all]) -&gt; bool: sort an array, returns true when sorting was succesful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sort</span></code>: fn([all], fn(all,all) -&gt; bool) -&gt; bool: sort an array given provided comparison function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reversed</span></code>: fn([all]) -&gt; [all]: reverse a copy of the given array but reversed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rotated</span></code>: fn([all], int) -&gt; [all]: rotate a copy of the given array by given amount</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sorted</span></code>: fn([all]) -&gt; [all]: provide a copy of the given array but sorted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sorted</span></code>: fn([all], fn(all,all) -&gt; bool) -&gt; [all]: return a copy of the array sorted by provided comparison function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_sorted</span></code>: fn([all]) -&gt; bool: returns true when given array is sorted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_sorted</span></code>: fn([all], fn(all,all) -&gt; bool) -&gt; bool: returns true when the given array is sorted by provided comparison function</p></li>
+</ul>
+</section>
+<section id="dictionary-functions">
+<h3>1.2 Dictionary functions<a class="headerlink" href="#dictionary-functions" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">values</span></code>: fn({all:all}) -&gt; [all]: returns the values of a given dictionary</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys</span></code>: fn({all:all}) -&gt; [all]: return the keys of a given dictionary</p></li>
+</ul>
+</section>
+<section id="string-conversion">
+<h3>1.3 String conversion<a class="headerlink" href="#string-conversion" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">to_bool</span></code>: fn(str) -&gt; bool: interprets the given str and returns the boolean value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to_int</span></code>: fn(str) -&gt; int: interpret the given str to an int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to_double</span></code>: fn(str) -&gt; double: interpret the given str to a double</p></li>
+</ul>
+</section>
+<section id="i-o-functions">
+<h3>1.3 I/O functions<a class="headerlink" href="#i-o-functions" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">open</span></code>: fn(str, str) -&gt; io: open the given filename with given mode and return the IO object</p></li>
+</ul>
+</section>
+</section>
+<section id="module-overview">
+<h2>2. Module overview<a class="headerlink" href="#module-overview" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>error_type: working with error types</p></li>
+<li><p>json: serializing and deserializing to json</p></li>
+<li><p>math: mathematical functions</p></li>
+<li><p>os: communication with the OS and file system</p></li>
+<li><p>regex: regular expression</p></li>
+<li><p>time: working with time</p></li>
+<li><p>threading: threading support</p></li>
+<li><p>typing: working with types</p></li>
+</ul>
+</section>
+<section id="error-type">
+<h2>3. error_type<a class="headerlink" href="#error-type" title="Permalink to this heading"></a></h2>
+<p>Constants:
+* <code class="docutils literal notranslate"><span class="pre">undefined_error</span></code>: int : unknown error
+* <code class="docutils literal notranslate"><span class="pre">type_error</span></code>: int : error against the type system
+* <code class="docutils literal notranslate"><span class="pre">const_error</span></code>: int : error in const correctness
+* <code class="docutils literal notranslate"><span class="pre">identifier_not_found</span></code>: int : error when trying to find an identifier
+* <code class="docutils literal notranslate"><span class="pre">identifier_already_exists</span></code>: int : error when trying to define an identifier that is already existant within scope
+* <code class="docutils literal notranslate"><span class="pre">value_error</span></code>: int : error when trying to produce a value
+* <code class="docutils literal notranslate"><span class="pre">key_error</span></code>: int : error when assuming a key exist within a set or dictionary and it does not
+* <code class="docutils literal notranslate"><span class="pre">index_error</span></code>: int : error when trying to index beyond the allowed ranges
+* <code class="docutils literal notranslate"><span class="pre">import_error</span></code>: int : error when trying to import a module
+* <code class="docutils literal notranslate"><span class="pre">syntax_error</span></code>: int : error when trying to parse a fragment of source
+* <code class="docutils literal notranslate"><span class="pre">os_error</span></code>: int : error when trying to open a file or any OS related errors</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">error_type</span><span class="p">;</span>
+<span class="k">try</span>
+<span class="p">{</span>
+    <span class="n">let</span> <span class="n">a</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">except</span> <span class="p">(</span> <span class="n">e</span> <span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">error_type</span><span class="p">()</span> <span class="o">==</span> <span class="n">error_type</span><span class="o">.</span><span class="n">type_error</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;type error on assignment&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;unknown error&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="json">
+<h2>4. json<a class="headerlink" href="#json" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">load</span></code>: fn(str) -&gt; all : take a JSON string and convert it into an object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dump</span></code>: fn(all) -&gt; str : take an object and dump it into a JSON string</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">d</span> <span class="p">:</span> <span class="p">[</span><span class="nb">all</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;three&quot;</span><span class="p">];</span>
+<span class="n">let</span> <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">d</span><span class="p">));</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;s =&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">);</span>
+
+<span class="n">let</span> <span class="n">e</span> <span class="p">:</span> <span class="p">{</span><span class="nb">str</span><span class="p">:</span><span class="nb">all</span><span class="p">}</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;a&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;b&quot;</span> <span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="s2">&quot;c&quot;</span> <span class="p">:</span> <span class="s2">&quot;three&quot;</span><span class="p">,</span>
+<span class="p">};</span>
+<span class="n">let</span> <span class="n">t</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">e</span><span class="p">));</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;e =&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">);</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;t =&quot;</span><span class="p">,</span> <span class="n">t</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="math">
+<h2>5. math<a class="headerlink" href="#math" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">abs</span></code>: fn(double) -&gt; double : take absolute value of double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">acos</span></code>: fn(double) -&gt; double: arc cosine of double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asin</span></code>: fn(double) -&gt; double: arc sine of double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">atan</span></code>: fn(double) -&gt; double: arc tangent of double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cbrt</span></code>: fn(double) -&gt; double: cube root of double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cos</span></code>: fn(double) -&gt; double: cosine of double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">erfc</span></code>: fn(double) -&gt; double: complementary error function of double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exp</span></code>: fn(double) -&gt; double: e raised to power of given double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lgamma</span></code>: fn(double) -&gt; double: natural logarithm of the gamma function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: fn(double) -&gt; double: logarithm of a double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log10</span></code>: fn(double) -&gt; double: logarithm of a double with base 10</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">round</span></code>: fn(double) -&gt; double: round to nearest integer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sin</span></code>: fn(double) -&gt; double: sine of a double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sqrt</span></code>: fn(double) -&gt; double: square root of a double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tan</span></code>: fn(double) -&gt; double: tangent of a double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tgamma</span></code>: fn(double) -&gt; double: gamma of a double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trunc</span></code>: fn(double) -&gt; double: truncated value of a double</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pow</span></code>: fn(double, double) -&gt; double: raise a double by a power given by another double</p></li>
+</ul>
+</section>
+<section id="os">
+<h2>6. os<a class="headerlink" href="#os" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">absolute</span></code>: fn(str) -&gt; str: convert a path defined in a string into an absolute path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">canonical</span></code>: fn(str) -&gt; str: convert a path defined in a string into a canonical path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weakly_canonical</span></code>: fn(str) -&gt; str: convert a path defined in a string into a weakly canonical path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">current_path</span></code>: fn() -&gt; str: return the current path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temp_directory_path</span></code>: fn() -&gt; str: return a path to a temporary directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exists</span></code>: fn(str) -&gt; bool: returns true when a given path exists</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_directory</span></code>: fn(str) -&gt; bool: create the provided directory, true when succesful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_directories</span></code>: fn(str) -&gt; bool: create the provided hierarchical directory path, true when succesful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove</span></code>: fn(str) -&gt; bool: remove the provided path, true when succesful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove_all</span></code>: fn(str) -&gt; bool: remove the provided path including subdirectories, true when succesful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">copy</span></code>: fn(str, str) -&gt; null: copy the given file from source to destination</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rename</span></code>: fn(str, str) -&gt; null: rename the given file from source to destination</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">list_dir</span></code>: fn(str) -&gt; [str]: list the content of the given directory name and return the list of encountered files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">list_dir_recursively</span></code>: fn(str) -&gt; [str]: list the content of the given directory name, iterate through subdirectories and return the list of encountered files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_env</span></code>: fn(str) -&gt; str: returns the value of the given environment variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system</span></code>: fn(str) -&gt; int: execute the provided command as a system call and return the return code of the process after execution</p></li>
+</ul>
+<p>Example:</p>
+<section id="os-path">
+<h3>6.1 os::path<a class="headerlink" href="#os-path" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">join</span></code>: fn([str]) -&gt; str: join an array of path elements into a single path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">root_name</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">root_directory</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">root_path</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">relative_path</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parent_path</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filename</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stem</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extension</span></code>: fn(str) -&gt; str:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_relative</span></code>: fn(str) -&gt; bool:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_absolute</span></code>: fn(str) -&gt; bool:</p></li>
+</ul>
+<p>Example using the os::path functionality:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="p">::</span><span class="n">path</span><span class="p">;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Current working directory:&quot;</span><span class="p">,</span> <span class="n">os</span><span class="p">::</span><span class="n">current_path</span><span class="p">());</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="regex">
+<h2>7. regex<a class="headerlink" href="#regex" title="Permalink to this heading"></a></h2>
+<p>Functions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">regex</span></code>: fn() -&gt; regex: create a regex object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">match</span></code>: fn(regex, str) -&gt; &lt;null, [str]&gt;: return the matches of the regex given the string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">search</span></code>: fn(regex, str) -&gt; &lt;null, [str]&gt;: return the found values of the regex given the string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replace</span></code>: fn(regex, str, str) -&gt; str: replace all the occurences in the string provided by the other string using the regex for pattern matching</p></li>
+</ul>
+<p>Constants:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">icase</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nosubs</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">collate</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ECMAscript</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">basic</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extended</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">awk</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grep</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">egrep</span></code>: int</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">regex</span><span class="p">;</span>
+<span class="n">let</span> <span class="n">re</span> <span class="o">=</span> <span class="n">regex</span><span class="p">::</span><span class="n">regex</span><span class="p">;</span>
+
+<span class="nb">print</span><span class="p">(</span> <span class="n">regex</span><span class="p">::</span><span class="n">match</span><span class="p">(</span><span class="n">re</span><span class="p">(</span><span class="s2">&quot;[a-z]+</span><span class="se">\\</span><span class="s2">.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;foo.txt&quot;</span><span class="p">)</span> <span class="p">);</span>
+<span class="nb">print</span><span class="p">(</span> <span class="n">regex</span><span class="p">::</span><span class="n">match</span><span class="p">(</span><span class="n">re</span><span class="p">(</span><span class="s2">&quot;[a-z]+</span><span class="se">\\</span><span class="s2">.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;bar.dat&quot;</span><span class="p">)</span> <span class="p">);</span>
+
+<span class="nb">print</span><span class="p">(</span> <span class="n">regex</span><span class="p">::</span><span class="n">replace</span><span class="p">(</span><span class="n">re</span><span class="p">(</span><span class="s2">&quot;a|e|i|o|u&quot;</span><span class="p">),</span> <span class="s2">&quot;Quick brown fox&quot;</span><span class="p">,</span> <span class="s2">&quot;[$&amp;]&quot;</span><span class="p">),</span> <span class="s2">&quot;Q[u][i]ck br[o]wn f[o]x&quot;</span> <span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="time">
+<h2>8. time<a class="headerlink" href="#time" title="Permalink to this heading"></a></h2>
+<p>Functions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: fn() -&gt; double: gives the time since the epoch (system dependent).</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+
+<span class="n">let</span> <span class="n">start_time</span> <span class="p">:</span> <span class="n">double</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">();</span>
+<span class="n">threading</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">2.0</span><span class="p">);</span>
+<span class="n">let</span> <span class="n">time_elapsed</span> <span class="p">:</span> <span class="n">double</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">;</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Time elapsed= &quot;</span><span class="p">,</span> <span class="n">time_elapsed</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="threading">
+<h2>9. threading<a class="headerlink" href="#threading" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">thread</span></code>: fn( fn() -&gt; all ) -&gt; thread: create a thread object and execute the specified function in it</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sleep</span></code>: fn(double) -&gt; null: sleep the current thread for the given amount of seconds</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">threading</span><span class="p">;</span>
+
+<span class="n">let</span> <span class="n">f</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">b</span> <span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="p">{</span>
+<span class="n">let</span> <span class="n">val</span> <span class="o">=</span> <span class="n">b</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span>
+    <span class="p">{</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">+</span> <span class="n">i</span><span class="p">;</span>
+        <span class="n">threading</span><span class="p">::</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">val</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">let</span> <span class="n">threads</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+<span class="p">{</span>
+    <span class="n">threads</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">threading</span><span class="p">::</span><span class="n">thread</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">i</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="p">(</span><span class="n">thread</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="n">let</span> <span class="nb">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">thread</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">();</span>
+    <span class="nb">sum</span> <span class="o">+=</span> <span class="n">thread</span><span class="o">.</span><span class="n">value</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sum from all threads=&quot;</span><span class="p">,</span> <span class="nb">sum</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="typing">
+<h2>10. typing<a class="headerlink" href="#typing" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">is_compatible_type_str</span></code>: fn(str, str) -&gt; bool: compares two type strings and returns true when the first is compatible with the second one</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">typing</span><span class="p">;</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Types are compatible&quot;</span><span class="p">,</span> <span class="n">typing</span><span class="p">::</span><span class="n">is_compatible_type_str</span><span class="p">(</span><span class="s2">&quot;double&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;double,int&gt;&quot;</span><span class="p">));</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="chapter-2.html" class="btn btn-neutral float-left" title="Language" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chapter-4.html" class="btn btn-neutral float-right" title="Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2024, TheWallSoft.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

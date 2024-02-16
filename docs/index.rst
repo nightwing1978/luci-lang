@@ -71,12 +71,12 @@ Modules:
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
    1 - Getting Started <source/chapter-1>
    2 - Language <source/chapter-2>
-   3 - Built-in modules <source/chapter-3>
+   3 - Built-in functions and modules <source/chapter-3>
    4 - Tools <source/chapter-4>
 
 Indices and tables

@@ -347,7 +347,7 @@ not be executed twice or more.
 
 Methods and variables in a module can be referenced using the `::` syntax.
 
-.. code:: python 
+.. code:: 
 
     import test_module;
     print("test_module::name=", test_module::name);
