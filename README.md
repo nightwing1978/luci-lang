@@ -66,6 +66,15 @@ make
 ./build/interp/luci
 ```
 
+# Documentation
+
+The source of the documentation can be inspected here:
+
+* Chapter 1: Introduction: <https://github.com/nightwing1978/luci-lang/blob/main/docs/source/chapter-1.rst>
+* Chapter 2: Language: <https://github.com/nightwing1978/luci-lang/blob/main/docs/source/chapter-2.rst>
+* Chapter 3: Built-in functions and modules: <https://github.com/nightwing1978/luci-lang/blob/main/docs/source/chapter-3.rst>
+* Chapter 4: Tools: <https://github.com/nightwing1978/luci-lang/blob/main/docs/source/chapter-4.rst>
+
 # License
 
 Luci is free software distributed under the Apache 2 License.
